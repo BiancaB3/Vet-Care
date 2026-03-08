@@ -1,29 +1,31 @@
-'use client';
+"use client";
+import { useSearchParams } from "next/navigation";
 
 import React, { useState, useEffect } from 'react';
 import {
   Mail, Lock, Bell, LogOut, Calendar, Users, Dog, ClipboardList,
   Plus, Search, X, TrendingUp, CalendarX, User, CheckCircle,
   Trash2, Edit2, UserPlus, PlusCircle, FilePlus, Eye, EyeOff,
-  Cat, Feather, Mouse, Turtle, MessageCircle, Check, X as XIcon
+  Cat, Feather, Mouse, Turtle, MessageCircle, Check, X as XIcon,
+  CirclePlus
 } from 'lucide-react';
 import { useVet, Veterinarian, Tutor, Pet, Appointment, Consultation } from '@/context/VetContext';
 
 // Mock data for testing
 const MOCK_VETERINARIANS = [
   {
-    id: '1',
-    name: 'Dr. Ricardo Silva',
-    email: 'ricardo@vetcare.com',
-    crmv: 'CRMV-SP 12345',
-    phone: '(11) 98765-4321',
+    id: 'vet-1',
+    name: 'Maria Silva',
+    email: 'maria@vetcare.com',
+    crmv: 'SP 12345',
+    phone: '(11) 99999-1111',
   },
   {
-    id: '2',
-    name: 'Dra. Maria Santos',
-    email: 'maria@vetcare.com',
-    crmv: 'CRMV-SP 67890',
-    phone: '(11) 91234-5678',
+    id: 'vet-2',
+    name: 'João Santos',
+    email: 'joao@vetcare.com',
+    crmv: 'SP 67890',
+    phone: '(11) 98888-2222',
   },
 ];
 
@@ -35,6 +37,8 @@ interface CalendarViewProps {
 
 const CalendarView: React.FC<CalendarViewProps> = ({ appointments, pets, onDeleteAppointment }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [showConsultaModal, setShowConsultaModal] = useState(false);
+  const [showPetModal, setShowPetModal] = useState(false);
 
   const monthNames = [
     'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
@@ -97,18 +101,36 @@ const CalendarView: React.FC<CalendarViewProps> = ({ appointments, pets, onDelet
             className="p-2 hover:bg-slate-100 rounded-lg"
           >
             ←
-          </button>
-          <button
-            onClick={() => setCurrentDate(new Date())}
-            className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90"
-          >
-            Hoje
+                  <button
+                    onClick={() => setShowPetModal(true)}
+                    className="flex items-center gap-2 px-6 py-3.5 bg-gradient-to-r from-secondary to-primary hover:shadow-xl hover:shadow-secondary/40 text-white font-bold rounded-xl transition-all shadow-lg"
+                  >
+                    <Dog className="w-5 h-5" /> Novo Pet
+                  </button>
           </button>
           <button
             onClick={() => navigateMonth('next')}
             className="p-2 hover:bg-slate-100 rounded-lg"
           >
             →
+          </button>
+          <button
+            className="px-4 py-2 bg-gradient-to-r from-primary to-secondary text-white font-bold rounded-xl flex items-center gap-2"
+            onClick={() => setShowConsultaModal(true)}
+          >
+            <span className="flex items-center gap-2">
+              <Calendar className="w-5 h-5" />
+              Nova Consulta
+            </span>
+          </button>
+          <button
+            className="px-4 py-2 bg-gradient-to-r from-primary to-secondary text-white font-bold rounded-xl flex items-center gap-2"
+            onClick={() => setShowPetModal(true)}
+          >
+            <span className="flex items-center gap-2">
+              <Dog className="w-5 h-5" />
+              Novo Pet
+            </span>
           </button>
         </div>
       </div>
@@ -173,9 +195,16 @@ const CalendarView: React.FC<CalendarViewProps> = ({ appointments, pets, onDelet
 };
 
 const VetCareApp: React.FC = () => {
+  const searchParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
   const { currentVet, login, logout, tutors, addTutor, updateTutor, deleteTutor, pets, addPet, updatePet, deletePet, appointments, addAppointment, deleteAppointment, updateAppointmentStatus, consultations, addConsultation, updateConsultation, deleteConsultation } = useVet();
 
   const [screen, setScreen] = useState<'login' | 'register' | 'forgot' | 'dashboard'>('login');
+
+  useEffect(() => {
+    if (searchParams && searchParams.get('screen') === 'register') {
+      setScreen('register');
+    }
+  }, []);
   const [activeSection, setActiveSection] = useState('agenda');
   const [isModalOpen, setIsModalOpen] = useState<string | null>(null);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
@@ -773,7 +802,7 @@ const VetCareApp: React.FC = () => {
       <div className="flex flex-1 overflow-hidden">
         <nav className="w-64 bg-white border-r border-slate-200 p-4 flex flex-col overflow-auto scrollbar-thin">
           <div className="space-y-2">
-            {[
+            {[ 
               { id: 'agenda', icon: <Calendar className="w-5 h-5" />, label: 'Agenda' },
               { id: 'tutores', icon: <Users className="w-5 h-5" />, label: 'Tutores' },
               { id: 'pets', icon: <Dog className="w-5 h-5" />, label: 'Pets' },
@@ -794,15 +823,18 @@ const VetCareApp: React.FC = () => {
             ))}
           </div>
 
-          {/* Mini Dashboard */}
+          {/* Espaço para separar o resumo do menu */}
+          <div className="flex-1" />
+
+          {/* Resumo do dia no final do menu lateral */}
           <div className="mt-6 pt-6 border-t border-slate-200">
             <h3 className="text-sm font-semibold text-slate-700 mb-4">Resumo</h3>
             <div className="space-y-3">
               <div className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-xl p-4 border border-primary/20">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs font-semibold text-slate-600">Consultas</p>
-                    <p className="text-2xl font-bold text-primary mt-1">{currentVetConsultations.length}</p>
+                    <p className="text-xs font-semibold text-slate-600">Consultas (Hoje)</p>
+                    <p className="text-2xl font-bold text-primary mt-1">{currentVetConsultations.filter(c => c.date === `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`).length}</p>
                   </div>
                   <Calendar className="w-8 h-8 text-primary/30" />
                 </div>
@@ -810,8 +842,8 @@ const VetCareApp: React.FC = () => {
               <div className="bg-gradient-to-br from-secondary/10 to-secondary/5 rounded-xl p-4 border border-secondary/20">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs font-semibold text-slate-600">Pets</p>
-                    <p className="text-2xl font-bold text-secondary mt-1">{currentVetPets.length}</p>
+                    <p className="text-xs font-semibold text-slate-600">Pets (Hoje)</p>
+                    <p className="text-2xl font-bold text-secondary mt-1">{currentVetPets.filter(p => { if (!p.createdAt) return false; const created = new Date(p.createdAt); return created.getFullYear() === new Date().getFullYear() && created.getMonth() === new Date().getMonth() && created.getDate() === new Date().getDate(); }).length}</p>
                   </div>
                   <Dog className="w-8 h-8 text-secondary/30" />
                 </div>
@@ -847,7 +879,7 @@ const VetCareApp: React.FC = () => {
                     onClick={() => openModal('appointment')}
                     className="flex items-center gap-2 px-6 py-3.5 bg-gradient-to-r from-primary to-secondary hover:shadow-xl hover:shadow-primary/40 text-white font-bold rounded-xl transition-all shadow-lg"
                   >
-                    <Plus className="w-5 h-5" /> Nova Consulta
+                    <Calendar className="w-5 h-5" /> Nova Consulta
                   </button>
                 </div>
               </div>
@@ -1017,7 +1049,7 @@ const VetCareApp: React.FC = () => {
                   onClick={() => openModal('pet')}
                   className="flex items-center gap-2 px-6 py-3.5 bg-gradient-to-r from-primary to-secondary hover:shadow-xl text-white font-bold rounded-xl transition-all shadow-lg"
                 >
-                  <PlusCircle className="w-5 h-5" /> Novo Pet
+                  <Dog className="w-5 h-5" /> Novo Pet
                 </button>
               </div>
 
@@ -1154,26 +1186,40 @@ const VetCareApp: React.FC = () => {
                   <X className="w-5 h-5" />
                 </button>
               </div>
-              <form onSubmit={handleAddTutor} className="p-6 space-y-5">
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">Nome Completo</label>
-                  <input type="text" value={tutorForm.name} onChange={(e) => setTutorForm({ ...tutorForm, name: e.target.value })} placeholder="Nome Completo" required className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium" />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">Email</label>
-                  <input type="email" value={tutorForm.email} onChange={(e) => setTutorForm({ ...tutorForm, email: e.target.value })} placeholder="Email" required className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium" />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">Telefone</label>
-                  <input type="tel" value={tutorForm.phone} onChange={(e) => setTutorForm({ ...tutorForm, phone: formatPhone(e.target.value) })} placeholder="(XX)XXXXX-XXXX" required className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium" />
-                </div>
-                <div className="flex gap-3 pt-4">
-                  <button onClick={closeModal} className="flex-1 px-4 py-3 border-2 text-slate-700 font-bold rounded-xl hover:bg-slate-100">
-                    Cancelar
-                  </button>
-                  <button type="submit" className="flex-1 px-4 py-3 bg-gradient-to-r from-primary to-secondary text-white font-bold rounded-xl">
-                    Salvar
-                  </button>
+              <form onSubmit={handleAddTutor} className="p-6">
+                <div className="flex gap-6">
+                  <div className="flex-1 space-y-5">
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">Nome Completo</label>
+                      <input type="text" value={tutorForm.name} onChange={(e) => setTutorForm({ ...tutorForm, name: e.target.value })} placeholder="Nome Completo" required className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">Email</label>
+                      <input type="email" value={tutorForm.email} onChange={(e) => setTutorForm({ ...tutorForm, email: e.target.value })} placeholder="Email" required className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">Telefone</label>
+                      <input type="tel" value={tutorForm.phone} onChange={(e) => setTutorForm({ ...tutorForm, phone: formatPhone(e.target.value) })} placeholder="(XX)XXXXX-XXXX" required className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium" />
+                    </div>
+                    <div className="flex gap-3 pt-4">
+                      <button onClick={closeModal} className="flex-1 px-4 py-3 border-2 text-slate-700 font-bold rounded-xl hover:bg-slate-100">
+                        Cancelar
+                      </button>
+                      <button type="submit" className="flex-1 px-4 py-3 bg-gradient-to-r from-primary to-secondary text-white font-bold rounded-xl">
+                        Salvar
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-center justify-center w-32 bg-white rounded-xl shadow p-3">
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">Foto</label>
+                    <div className="w-24 h-24 rounded-full bg-slate-100 flex items-center justify-center mb-2">
+                      {/* Ícone do menu de ação de tutor */}
+                      <User className="w-12 h-12 text-primary" />
+                    </div>
+                    <div className="w-full">
+                      <input type="file" accept="image/*" className="w-full border border-slate-200 rounded-xl px-2 py-1 mt-1" />
+                    </div>
+                  </div>
                 </div>
               </form>
             </div>
@@ -1190,52 +1236,66 @@ const VetCareApp: React.FC = () => {
                   <X className="w-5 h-5" />
                 </button>
               </div>
-              <form onSubmit={handleAddPet} className="p-6 space-y-5">
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">Tutor</label>
-                  <select name="tutor_id" required className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium">
-                    <option value="">Selecione o tutor</option>
-                    {currentVetTutors.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">Nome do Pet</label>
-                  <input type="text" name="pet_name" placeholder="Nome do Pet" required className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium" />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">Espécie</label>
-                  <select name="pet_species" required defaultValue={petToEdit?.species || ''} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium">
-                    <option value="">Selecione espécie</option>
-                    <option value="Cao">Cão</option>
-                    <option value="Gato">Gato</option>
-                    <option value="Ave">Ave</option>
-                    <option value="Reptil">Réptil</option>
-                    <option value="Roedor">Roedor</option>
-                    <option value="Outro">Outro</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">Raça</label>
-                  <input type="text" name="pet_breed" placeholder="Raça" defaultValue={petToEdit?.breed}
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium" />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">Idade</label>
-                  <input type="number" min="0" name="pet_age" placeholder="Idade (anos)" defaultValue={petToEdit?.age}
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium" />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">Peso (kg)</label>
-                  <input type="number" step="0.1" min="0" name="pet_weight" placeholder="Peso em kg" defaultValue={petToEdit?.weight}
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium" />
-                </div>
-                <div className="flex gap-3 pt-4">
-                  <button onClick={closeModal} className="flex-1 px-4 py-3 border-2 text-slate-700 font-bold rounded-xl hover:bg-slate-100">
-                    Cancelar
-                  </button>
-                  <button type="submit" className="flex-1 px-4 py-3 bg-gradient-to-r from-primary to-secondary text-white font-bold rounded-xl">
-                    Salvar
-                  </button>
+              <form onSubmit={handleAddPet} className="p-6">
+                <div className="flex gap-6">
+                  <div className="flex-1 space-y-5">
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">Tutor</label>
+                      <select name="tutor_id" required className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium">
+                        <option value="">Selecione o tutor</option>
+                        {currentVetTutors.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">Nome do Pet</label>
+                      <input type="text" name="pet_name" placeholder="Nome do Pet" required className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">Espécie</label>
+                      <select name="pet_species" required defaultValue={petToEdit?.species || ''} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium">
+                        <option value="">Selecione espécie</option>
+                        <option value="Cao">Cão</option>
+                        <option value="Gato">Gato</option>
+                        <option value="Ave">Ave</option>
+                        <option value="Reptil">Réptil</option>
+                        <option value="Roedor">Roedor</option>
+                        <option value="Outro">Outro</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">Raça</label>
+                      <input type="text" name="pet_breed" placeholder="Raça" defaultValue={petToEdit?.breed}
+                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">Idade</label>
+                      <input type="number" min="0" name="pet_age" placeholder="Idade (anos)" defaultValue={petToEdit?.age}
+                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">Peso (kg)</label>
+                      <input type="number" step="0.1" min="0" name="pet_weight" placeholder="Peso em kg" defaultValue={petToEdit?.weight}
+                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium" />
+                    </div>
+                    <div className="flex gap-3 pt-4">
+                      <button onClick={closeModal} className="flex-1 px-4 py-3 border-2 text-slate-700 font-bold rounded-xl hover:bg-slate-100">
+                        Cancelar
+                      </button>
+                      <button type="submit" className="flex-1 px-4 py-3 bg-gradient-to-r from-primary to-secondary text-white font-bold rounded-xl">
+                        Salvar
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-center justify-center w-32 bg-white rounded-xl shadow p-3">
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">Foto</label>
+                    <div className="w-24 h-24 rounded-full bg-slate-100 flex items-center justify-center mb-2">
+                      {/* Ícone do menu de ação de pet */}
+                      {petToEdit?.species ? getSpeciesIcon(petToEdit.species) : <Dog className="w-12 h-12 text-primary" />}
+                    </div>
+                    <div className="w-full">
+                      <input type="file" accept="image/*" className="w-full border border-slate-200 rounded-xl px-2 py-1 mt-1" />
+                    </div>
+                  </div>
                 </div>
               </form>
             </div>

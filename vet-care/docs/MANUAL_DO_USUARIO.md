@@ -55,43 +55,23 @@ A interface é dividida em **cabeçalho** e **barra lateral**:
 ### Cabeçalho (topo)
 
 - **VetCare** (com logo) — seu nome e CRMV aparecem aqui.
-- À direita: seu **nome**, **CRMV** e botão **Sair**.
 
 ### Barra lateral (esquerda)
 
 Na sidebar você encontra as principais seções:
 
-- **Agenda** — lista de consultas agendadas.
-- **Tutores** — cadastro e gerenciamento de tutores.
-- **Pets** — cadastro e gerenciamento de pets.
 - **Prontuários** — histórico de consultas realizadas com diagnóstico e prescrição.
-
-Abaixo, há um **resumo** mostrando total de consultas e pets.
-
----
 
 ## Dashboard/Resumo
 
-Na **barra lateral**, abaixo das seções de navegação, você vê um **resumo** da sua base:
-
-- **Consultas** — quantidade total de consultas agendadas e realizadas.
 - **Pets** — quantidade total de pets cadastrados.
-
-Este resumo é atualizado automaticamente conforme você cadastra novos tutores, pets e consultas.
-
----
 
 ## Seção: Agenda
 
-Na tela **Agenda** você vê **todas as suas consultas agendadas**, ordenadas por data e hora.
-
 ### Listagem de consultas
 
-- Cada card mostra:
-  - Data da consulta
-  - Horário
-  - Nome do pet
-  - Motivo da consulta
+- Horário
+- Nome do pet
 
 - Acima da lista há:
   - um campo de **busca** para filtrar por nome do pet

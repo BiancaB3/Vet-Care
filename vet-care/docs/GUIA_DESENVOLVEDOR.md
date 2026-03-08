@@ -2,40 +2,19 @@
 
 Este documento é voltado a desenvolvedores que vão dar suporte, evoluir ou entender o projeto VetCare. Ele cobre visão geral, tecnologias, estrutura do código, funções principais, instalação no Windows e informações técnicas relevantes.
 
----
-
 ## 1. Visão geral do projeto
 
 ### O que é o VetCare
 
-O **VetCare** é um sistema de gestão para clínicas veterinárias. O usuário final é o **veterinário**, que:
-
-- Faz login com e-mail e senha
-- Cadastra **tutores** (donos) e **pets**
 - Agenda e registra **consultas** (data/hora, diagnóstico, prescrição)
 - Pode “finalizar” uma consulta e simular o envio de um resumo/receita por e-mail ao tutor
 
-### Regra de negócio central
-
-O sistema é **por profissional**: cada veterinário logado enxerga apenas **seus próprios** tutores, pets e consultas. Todo dado é filtrado por `veterinarioId`.
-
 ### Estado atual
-
-- **Frontend apenas**: Next.js (App Router), React, TypeScript, Tailwind CSS.
-- **Persistência**: dados em **localStorage** no navegador (tutores, pets, consultas por veterinário) e sessão de login (`vetcare_user`).
-- **Backend**: não existe ainda; a ideia é integrar API e banco de dados no futuro.
-
----
 
 ## 2. Stack e tecnologias
 
-| Tecnologia | Uso no projeto |
-|------------|----------------|
 | **Next.js 15** | Framework React com App Router; rotas em `app/`, SSR quando aplicável. |
 | **React 19** | Biblioteca de UI; componentes e hooks. |
-| **TypeScript 5** | Tipagem estática; tipos em `lib/types.ts`. |
-| **Tailwind CSS 3** | Estilização via classes utilitárias; config em `tailwind.config.ts`. |
-| **React Context** | Estado global de autenticação (`AuthContext`); login/logout e usuário logado. |
 | **localStorage** | Persistência de login e de dados (tutores, pets, consultas) por `veterinarioId`. |
 
 ### Onde cada tecnologia é utilizada no código
@@ -148,15 +127,15 @@ vet-care/
 
 ### Rotas (URLs)
 
-| Rota | Arquivo | Descrição |
-|------|---------|-----------|
-| `/` | `app/page.tsx` | Redireciona para `/login` |
-| `/login` | `app/login/page.tsx` | Tela de login |
-| `/home` | `app/(sistema)/home/page.tsx` | Dashboard (protegida) |
-| `/agenda` | `app/(sistema)/agenda/page.tsx` | Lista de consultas (protegida) |
-| `/tutores-pets` | `app/(sistema)/tutores-pets/page.tsx` | Cadastro tutores/pets (protegida) |
-| `/consulta/nova` | `app/(sistema)/consulta/nova/page.tsx` | Nova consulta (protegida) |
-| `/consulta/[id]` | `app/(sistema)/consulta/[id]/page.tsx` | Editar consulta (protegida) |
+| Rota             | Arquivo                                | Descrição                         |
+| ---------------- | -------------------------------------- | --------------------------------- |
+| `/`              | `app/page.tsx`                         | Redireciona para `/login`         |
+| `/login`         | `app/login/page.tsx`                   | Tela de login                     |
+| `/home`          | `app/(sistema)/home/page.tsx`          | Dashboard (protegida)             |
+| `/agenda`        | `app/(sistema)/agenda/page.tsx`        | Lista de consultas (protegida)    |
+| `/tutores-pets`  | `app/(sistema)/tutores-pets/page.tsx`  | Cadastro tutores/pets (protegida) |
+| `/consulta/nova` | `app/(sistema)/consulta/nova/page.tsx` | Nova consulta (protegida)         |
+| `/consulta/[id]` | `app/(sistema)/consulta/[id]/page.tsx` | Editar consulta (protegida)       |
 
 Todas as rotas dentro de `(sistema)` usam o mesmo layout (Header + Footer) e passam pelo `SistemaGuard` (exigem login).
 
@@ -187,15 +166,15 @@ Toda entidade operada pelo usuário (Tutor, Pet, Consulta) tem `veterinarioId` p
 
 ### Funções exportadas
 
-| Função | Descrição |
-|--------|-----------|
-| `getVeterinarioPorEmailSenha(email, senha)` | Retorna `Veterinario` do array mock se credenciais batem; usado no login. |
-| `getTutores(vetId)` | Lê do localStorage; se vazio, grava dados iniciais mock e retorna. Sempre filtra por `vetId`. |
-| `setTutores(vetId, tutores)` | Grava array de tutores no localStorage (já filtrado por `vetId` internamente). |
-| `getPets(vetId)` | Idem `getTutores`, para pets. |
-| `setPets(vetId, pets)` | Grava array de pets. |
-| `getConsultas(vetId)` | Idem para consultas. |
-| `setConsultas(vetId, consultas)` | Grava array de consultas. |
+| Função                                      | Descrição                                                                                     |
+| ------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| `getVeterinarioPorEmailSenha(email, senha)` | Retorna `Veterinario` do array mock se credenciais batem; usado no login.                     |
+| `getTutores(vetId)`                         | Lê do localStorage; se vazio, grava dados iniciais mock e retorna. Sempre filtra por `vetId`. |
+| `setTutores(vetId, tutores)`                | Grava array de tutores no localStorage (já filtrado por `vetId` internamente).                |
+| `getPets(vetId)`                            | Idem `getTutores`, para pets.                                                                 |
+| `setPets(vetId, pets)`                      | Grava array de pets.                                                                          |
+| `getConsultas(vetId)`                       | Idem para consultas.                                                                          |
+| `setConsultas(vetId, consultas)`            | Grava array de consultas.                                                                     |
 
 As funções `get*` verificam `typeof window` e retornam fallback em ambiente sem `window` (ex.: SSR), evitando erro no build.
 
@@ -252,19 +231,19 @@ Páginas que precisam de estado, hooks ou localStorage são **Client Components*
 
 ### Pré-requisitos
 
-1. **Node.js (LTS)**  
-   - Acesse [https://nodejs.org](https://nodejs.org).  
-   - Baixe a versão **LTS** (recomendado 20.x ou superior).  
-   - Execute o instalador e siga as etapas (incluir “Add to PATH” se oferecido).  
+1. **Node.js (LTS)**
+   - Acesse [https://nodejs.org](https://nodejs.org).
+   - Baixe a versão **LTS** (recomendado 20.x ou superior).
+   - Execute o instalador e siga as etapas (incluir “Add to PATH” se oferecido).
    - No PowerShell ou no CMD, confira:
      ```bash
      node -v
      npm -v
      ```
 
-2. **Git**  
-   - Baixe em [https://git-scm.com/download/win](https://git-scm.com/download/win).  
-   - Instale com as opções padrão.  
+2. **Git**
+   - Baixe em [https://git-scm.com/download/win](https://git-scm.com/download/win).
+   - Instale com as opções padrão.
    - Confira:
      ```bash
      git --version
@@ -275,48 +254,53 @@ Páginas que precisam de estado, hooks ou localStorage são **Client Components*
 1. Abra **PowerShell** ou **Prompt de Comando** e vá para a pasta onde quer o repositório (ex.: `C:\projetos`).
 
 2. Clone o repositório (substitua pela URL real do repositório):
+
    ```bash
    git clone <URL_DO_REPOSITORIO>
    cd VetCare
    cd vet-care
    ```
+
    Se o projeto já estiver em uma pasta local, apenas:
+
    ```bash
    cd C:\caminho\para\VetCare\vet-care
    ```
 
 3. Instale as dependências:
+
    ```bash
    npm install
    ```
 
 4. Inicie o servidor de desenvolvimento:
+
    ```bash
    npm run dev
    ```
 
-5. Abra o navegador em **http://localhost:3000**.  
-   - A raiz redireciona para `/login`.  
+5. Abra o navegador em **http://localhost:3000**.
+   - A raiz redireciona para `/login`.
    - Use por exemplo: **maria@vetcare.com** / **123456**.
 
 ### Comandos úteis
 
-| Comando | Descrição |
-|---------|-----------|
-| `npm run dev` | Sobe o servidor de desenvolvimento (hot reload). |
-| `npm run build` | Gera o build de produção na pasta `.next`. |
+| Comando         | Descrição                                                             |
+| --------------- | --------------------------------------------------------------------- |
+| `npm run dev`   | Sobe o servidor de desenvolvimento (hot reload).                      |
+| `npm run build` | Gera o build de produção na pasta `.next`.                            |
 | `npm run start` | Sobe o servidor com o build de produção (rodar após `npm run build`). |
-| `npm run lint` | Executa o ESLint no projeto. |
+| `npm run lint`  | Executa o ESLint no projeto.                                          |
 
 ---
 
 ## 11. Dicas para desenvolvimento e suporte
 
-- **Alterar dados iniciais** — Edite os arrays e constantes em `lib/mockData.ts` (tutores, pets, consultas, veterinários).  
-- **Novas rotas** — Crie pastas/arquivos em `app/` seguindo o App Router; para rotas protegidas, coloque dentro de `app/(sistema)/`.  
-- **Novos tipos** — Adicione em `lib/types.ts` e use nos componentes e em `mockData` se for persistir.  
-- **Trocar localStorage por API** — Mantenha a mesma interface em `lib/mockData.ts` (ou crie um módulo `lib/api.ts`) e troque as implementações por `fetch`; o AuthContext pode chamar um endpoint de login em vez de `getVeterinarioPorEmailSenha`.  
-- **Envio real de e-mail** — No fluxo “Finalizar e enviar resumo ao tutor”, substituir o `alert` por uma chamada a um endpoint que envie o e-mail (ex.: backend com Nodemailer, Resend, etc.).  
+- **Alterar dados iniciais** — Edite os arrays e constantes em `lib/mockData.ts` (tutores, pets, consultas, veterinários).
+- **Novas rotas** — Crie pastas/arquivos em `app/` seguindo o App Router; para rotas protegidas, coloque dentro de `app/(sistema)/`.
+- **Novos tipos** — Adicione em `lib/types.ts` e use nos componentes e em `mockData` se for persistir.
+- **Trocar localStorage por API** — Mantenha a mesma interface em `lib/mockData.ts` (ou crie um módulo `lib/api.ts`) e troque as implementações por `fetch`; o AuthContext pode chamar um endpoint de login em vez de `getVeterinarioPorEmailSenha`.
+- **Envio real de e-mail** — No fluxo “Finalizar e enviar resumo ao tutor”, substituir o `alert` por uma chamada a um endpoint que envie o e-mail (ex.: backend com Nodemailer, Resend, etc.).
 - **Pasta `src/`** — Pode ser removida; não é usada pelo Next.js. O que importa é `app/`, `context/`, `lib/`, `public/` e os arquivos de config na raiz.
 
 ---
@@ -330,4 +314,4 @@ Páginas que precisam de estado, hooks ou localStorage são **Client Components*
 
 ---
 
-*Documento mantido para o projeto VetCare — uso interno da equipe de desenvolvimento.*
+_Documento mantido para o projeto VetCare — uso interno da equipe de desenvolvimento._

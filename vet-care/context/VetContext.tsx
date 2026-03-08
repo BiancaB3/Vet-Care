@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { getTutores, getPets, getConsultas } from '@/lib/mockData';
 
 // Type Definitions
 export interface Veterinarian {
@@ -91,6 +92,38 @@ export function VetProvider({ children }: { children: ReactNode }) {
 
   const login = (vet: Veterinarian) => {
     setCurrentVet(vet);
+    // Adapta os dados mockados para os tipos usados no sistema
+    setTutors(getTutores(vet.id).map(t => ({
+      id: t.id,
+      vetId: t.veterinarioId,
+      name: t.nome,
+      email: t.email,
+      phone: t.telefone,
+      createdAt: new Date(),
+    })));
+    setPets(getPets(vet.id).map(p => ({
+      id: p.id,
+      vetId: p.veterinarioId,
+      tutorId: p.tutorId,
+      name: p.nome,
+      species: p.especie,
+      breed: p.raca,
+      age: 2,
+      weight: 10,
+      createdAt: new Date(),
+    })));
+    setConsultations(getConsultas(vet.id).map(c => ({
+      id: c.id,
+      vetId: c.veterinarioId,
+      petId: c.petId,
+      date: c.dataHora.split('T')[0],
+      time: c.dataHora.split('T')[1]?.slice(0,5) || '09:00',
+      reason: c.diagnostico,
+      diagnosis: c.diagnostico,
+      prescription: c.prescricao,
+      notes: '',
+      createdAt: new Date(),
+    })));
   };
 
   const logout = () => {

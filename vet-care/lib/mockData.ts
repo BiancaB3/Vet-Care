@@ -45,11 +45,16 @@ function setStorage<T>(key: string, data: T[]): void {
 const tutoresIniciais: Tutor[] = [
   { id: 't1', nome: 'Carlos Souza', telefone: '(11) 99999-1111', email: 'carlos@email.com', veterinarioId: VET_ID },
   { id: 't2', nome: 'Ana Oliveira', telefone: '(11) 98888-2222', email: 'ana@email.com', veterinarioId: VET_ID },
+  { id: 't3', nome: 'Bruna Lima', telefone: '(11) 97777-3333', email: 'bruna@email.com', veterinarioId: VET_ID },
 ];
 
 const petsIniciais: Pet[] = [
   { id: 'p1', nome: 'Thor', especie: 'Cão', raca: 'Golden Retriever', tutorId: 't1', veterinarioId: VET_ID },
   { id: 'p2', nome: 'Luna', especie: 'Gato', raca: 'Persa', tutorId: 't2', veterinarioId: VET_ID },
+  { id: 'p3', nome: 'Max', especie: 'Cão', raca: 'Bulldog', tutorId: 't1', veterinarioId: VET_ID },
+  { id: 'p4', nome: 'Mel', especie: 'Gato', raca: 'Siamês', tutorId: 't2', veterinarioId: VET_ID },
+  { id: 'p5', nome: 'Nina', especie: 'Cão', raca: 'Poodle', tutorId: 't3', veterinarioId: VET_ID },
+  { id: 'p6', nome: 'Simba', especie: 'Gato', raca: 'Maine Coon', tutorId: 't3', veterinarioId: VET_ID },
 ];
 
 const consultasIniciais: Consulta[] = [
@@ -59,6 +64,22 @@ const consultasIniciais: Consulta[] = [
     diagnostico: 'Check-up anual',
     prescricao: 'Vermífugo mensal.',
     petId: 'p1',
+    veterinarioId: VET_ID,
+  },
+  {
+    id: 'c2',
+    dataHora: new Date(Date.now() + 86400000 * 2).toISOString(),
+    diagnostico: 'Vacinação',
+    prescricao: 'Vacina V8 aplicada.',
+    petId: 'p2',
+    veterinarioId: VET_ID,
+  },
+  {
+    id: 'c3',
+    dataHora: new Date(Date.now() + 86400000 * 3).toISOString(),
+    diagnostico: 'Tratamento dermatológico',
+    prescricao: 'Pomada tópica por 7 dias.',
+    petId: 'p3',
     veterinarioId: VET_ID,
   },
 ];

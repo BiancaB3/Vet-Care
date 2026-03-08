@@ -131,7 +131,7 @@ export default function LandingPage() {
           <h3 className="text-4xl font-bold text-slate-900">Pronto para começar?</h3>
           <p className="text-xl text-slate-600">Crie sua conta agora e acesse todos os recursos do VetCare</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/login" className="px-8 py-4 bg-gradient-to-br from-[#a2d4b8] to-[#7bc4a1] hover:shadow-xl hover:shadow-primary/40 text-white font-bold rounded-2xl transition-all text-lg shadow-lg transform hover:scale-105">Acessar Sistema</Link>
+            <Link href="/login" className="px-8 py-4 bg-gradient-to-br from-[#a2d4b8] to-[#7bc4a1] hover:shadow-xl hover:shadow-primary/40 text-white font-bold rounded-2xl transition-all text-lg shadow-lg transform hover:scale-105" onClick={e => { e.preventDefault(); window.location.href = '/login?screen=register'; }}>Acessar Sistema</Link>
             <button
               onClick={scrollToTop}
               className="px-8 py-4 text-black font-bold rounded-xl transition-all text-lg bg-transparent border-0 hover:border-2 hover:border-[#a2d4b8]"
