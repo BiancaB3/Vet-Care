@@ -10,14 +10,11 @@
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/page.js"
-<<<<<<< HEAD
-=======
     ],
     "/login/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/login/page.js"
->>>>>>> 2e4086320c8c95eaf3340afeb4b209757f89240c
     ]
   }
 }

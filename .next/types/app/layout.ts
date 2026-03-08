@@ -1,4 +1,4 @@
-// File: C:\Users\bianc\Downloads\VetCare\VetCare\vet-care\app\layout.tsx
+// File: C:\Users\bianc\Documents\GitHub\Vet-Care\app\layout.tsx
 import * as entry from '../../../app/layout.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 
