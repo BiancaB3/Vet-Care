@@ -178,6 +178,24 @@ const VetCareApp: React.FC = () => {
   const [screen, setScreen] = useState<'login' | 'register' | 'forgot' | 'dashboard'>('login');
   const [activeSection, setActiveSection] = useState('agenda');
   const [isModalOpen, setIsModalOpen] = useState<string | null>(null);
+  // Inserir tutores mockados após login de maria@vetcare.com
+  useEffect(() => {
+    if (currentVet && currentVet.email === 'maria@vetcare.com') {
+      const mockTutors = [
+        { id: 'tutor1', vetId: currentVet.id, name: 'Mel Maia', email: 'mel.maia@tiktok.com', phone: '(21) 99888-7766', createdAt: new Date() },
+        { id: 'tutor2', vetId: currentVet.id, name: 'Fausto Silva', email: 'loco.bicho@domingao.com', phone: '(11) 91234-5678', createdAt: new Date() },
+        { id: 'tutor3', vetId: currentVet.id, name: 'Ana Maria Braga', email: 'acorda.menina@maisvoce.com', phone: '(21) 98765-4321', createdAt: new Date() },
+        { id: 'tutor4', vetId: currentVet.id, name: 'Neymar Junior', email: 'cai.cai@menino-ney.br', phone: '(13) 91010-1010', createdAt: new Date() },
+        { id: 'tutor5', vetId: currentVet.id, name: 'Gretchen Conga', email: 'rainha.piripiri@memes.com', phone: '(81) 95555-4444', createdAt: new Date() },
+      ];
+      // Evitar duplicidade
+      mockTutors.forEach((tutor) => {
+        if (!tutors.some((t) => t.email === tutor.email)) {
+          addTutor(tutor);
+        }
+      });
+    }
+  }, [currentVet]);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [editingConsultationId, setEditingConsultationId] = useState<string | null>(null);
@@ -794,8 +812,8 @@ const VetCareApp: React.FC = () => {
             ))}
           </div>
 
-          {/* Mini Dashboard */}
-          <div className="mt-6 pt-6 border-t border-slate-200">
+          {/* ...existing code... */}
+          <div className="mt-auto pt-6 border-t border-slate-200">
             <h3 className="text-sm font-semibold text-slate-700 mb-4">Resumo</h3>
             <div className="space-y-3">
               <div className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-xl p-4 border border-primary/20">
@@ -847,7 +865,7 @@ const VetCareApp: React.FC = () => {
                     onClick={() => openModal('appointment')}
                     className="flex items-center gap-2 px-6 py-3.5 bg-gradient-to-r from-primary to-secondary hover:shadow-xl hover:shadow-primary/40 text-white font-bold rounded-xl transition-all shadow-lg"
                   >
-                    <Plus className="w-5 h-5" /> Nova Consulta
+                    <Calendar className="w-5 h-5" /> Nova Consulta
                   </button>
                 </div>
               </div>
@@ -1017,7 +1035,7 @@ const VetCareApp: React.FC = () => {
                   onClick={() => openModal('pet')}
                   className="flex items-center gap-2 px-6 py-3.5 bg-gradient-to-r from-primary to-secondary hover:shadow-xl text-white font-bold rounded-xl transition-all shadow-lg"
                 >
-                  <PlusCircle className="w-5 h-5" /> Novo Pet
+                  <Dog className="w-5 h-5" /> Novo Pet
                 </button>
               </div>
 
@@ -1434,7 +1452,10 @@ const VetCareApp: React.FC = () => {
                     </span>
                     <button
                       onClick={() => {
-                        updateAppointmentStatus(appointment.id, { confirmed: !appointment.confirmed });
+                        updateAppointmentStatus(
+                          appointment.id,
+                          appointment.confirmed ? 'agendado' : 'cancelado'
+                        );
                         setAppointmentDetailsModal(null);
                         showToast(`Consulta ${!appointment.confirmed ? 'confirmada' : 'marcada como pendente'}!`);
                       }}

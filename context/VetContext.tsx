@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 // Type Definitions
 export interface Veterinarian {
@@ -89,8 +89,53 @@ export function VetProvider({ children }: { children: ReactNode }) {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [consultations, setConsultations] = useState<Consultation[]>([]);
 
+  // Load tutors and pets from localStorage when vet logs in
   const login = (vet: Veterinarian) => {
     setCurrentVet(vet);
+    // TUTORES
+    if (typeof window !== 'undefined') {
+      const storedTutors = localStorage.getItem(`vetcare_tutores_${vet.id}`);
+      // Sempre sobrescreve os dados ao logar com maria@vetcare.com
+      if (vet.email === 'maria@vetcare.com') {
+        const defaultTutors = [
+          { id: 'tutor1', vetId: vet.id, name: 'Mel Maia', email: 'mel.maia@tiktok.com', phone: '(21) 99888-7766', createdAt: new Date() },
+          { id: 'tutor2', vetId: vet.id, name: 'Fausto Silva', email: 'loco.bicho@domingao.com', phone: '(11) 91234-5678', createdAt: new Date() },
+          { id: 'tutor3', vetId: vet.id, name: 'Ana Maria Braga', email: 'acorda.menina@maisvoce.com', phone: '(21) 98765-4321', createdAt: new Date() },
+          { id: 'tutor4', vetId: vet.id, name: 'Neymar Junior', email: 'cai.cai@menino-ney.br', phone: '(13) 91010-1010', createdAt: new Date() },
+          { id: 'tutor6', vetId: vet.id, name: 'Gretchen', email: 'rainha@bundinha.com', phone: '(11) 90000-0002', createdAt: new Date() },
+        ];
+        setTutors(defaultTutors);
+        localStorage.setItem(`vetcare_tutores_${vet.id}`, JSON.stringify(defaultTutors));
+        const defaultPets = [
+          { id: 'pet1', vetId: vet.id, tutorId: 'tutor1', name: 'Fofinho de Neve', species: 'Cão', breed: 'Lulu da Pomerânia', age: 2, weight: 2, createdAt: new Date() },
+          { id: 'pet2', vetId: vet.id, tutorId: 'tutor2', name: 'Churrasquinho', species: 'Cão', breed: 'Vira-lata Caramelo', age: 5, weight: 12, createdAt: new Date() },
+          { id: 'pet3', vetId: vet.id, tutorId: 'tutor3', name: 'Louro José II', species: 'Ave', breed: 'Papagaio-verdadeiro', age: 1, weight: 1, createdAt: new Date() },
+          { id: 'pet4', vetId: vet.id, tutorId: 'tutor4', name: 'Mbappé', species: 'Cão', breed: 'Bulldog Francês (corre muito)', age: 3, weight: 25, createdAt: new Date() },
+          { id: 'pet6', vetId: vet.id, tutorId: 'tutor6', name: 'Piripiri', species: 'Cão', breed: 'Poodle Gigante', age: 10, weight: 4.2, createdAt: new Date() },
+        ];
+        setPets(defaultPets);
+        localStorage.setItem(`vetcare_pets_${vet.id}`, JSON.stringify(defaultPets));
+      } else {
+        if (storedTutors) {
+          try {
+            setTutors(JSON.parse(storedTutors));
+          } catch {
+            setTutors([]);
+          }
+        } else {
+          setTutors([]);
+        }
+        if (storedPets) {
+          try {
+            setPets(JSON.parse(storedPets));
+          } catch {
+            setPets([]);
+          }
+        } else {
+          setPets([]);
+        }
+      }
+    }
   };
 
   const logout = () => {
@@ -101,34 +146,78 @@ export function VetProvider({ children }: { children: ReactNode }) {
     setConsultations([]);
   };
 
+  // Sync tutors and pets to localStorage whenever changed
+  useEffect(() => {
+    if (currentVet && typeof window !== 'undefined') {
+      localStorage.setItem(`vetcare_tutores_${currentVet.id}`, JSON.stringify(tutors));
+      localStorage.setItem(`vetcare_pets_${currentVet.id}`, JSON.stringify(pets));
+    }
+  }, [tutors, pets, currentVet]);
+
   const addTutor = (tutor: Tutor) => {
     if (currentVet) {
       tutor.vetId = currentVet.id;
-      setTutors([...tutors, tutor]);
+      setTutors(prev => {
+        const updated = [...prev, tutor];
+        if (typeof window !== 'undefined') {
+          localStorage.setItem(`vetcare_tutores_${currentVet.id}`, JSON.stringify(updated));
+        }
+        return updated;
+      });
     }
   };
 
   const updateTutor = (id: string, data: Partial<Tutor>) => {
-    setTutors(tutors.map(t => (t.id === id ? { ...t, ...data } : t)));
+    setTutors(prev => {
+      const updated = prev.map(t => (t.id === id ? { ...t, ...data } : t));
+      if (currentVet && typeof window !== 'undefined') {
+        localStorage.setItem(`vetcare_tutores_${currentVet.id}`, JSON.stringify(updated));
+      }
+      return updated;
+    });
   };
 
   const deleteTutor = (id: string) => {
-    setTutors(tutors.filter(t => t.id !== id));
+    setTutors(prev => {
+      const updated = prev.filter(t => t.id !== id);
+      if (currentVet && typeof window !== 'undefined') {
+        localStorage.setItem(`vetcare_tutores_${currentVet.id}`, JSON.stringify(updated));
+      }
+      return updated;
+    });
   };
 
   const addPet = (pet: Pet) => {
     if (currentVet) {
       pet.vetId = currentVet.id;
-      setPets([...pets, pet]);
+      setPets(prev => {
+        const updated = [...prev, pet];
+        if (typeof window !== 'undefined') {
+          localStorage.setItem(`vetcare_pets_${currentVet.id}`, JSON.stringify(updated));
+        }
+        return updated;
+      });
     }
   };
 
   const updatePet = (id: string, data: Partial<Pet>) => {
-    setPets(pets.map(p => (p.id === id ? { ...p, ...data } : p)));
+    setPets(prev => {
+      const updated = prev.map(p => (p.id === id ? { ...p, ...data } : p));
+      if (currentVet && typeof window !== 'undefined') {
+        localStorage.setItem(`vetcare_pets_${currentVet.id}`, JSON.stringify(updated));
+      }
+      return updated;
+    });
   };
 
   const deletePet = (id: string) => {
-    setPets(pets.filter(p => p.id !== id));
+    setPets(prev => {
+      const updated = prev.filter(p => p.id !== id);
+      if (currentVet && typeof window !== 'undefined') {
+        localStorage.setItem(`vetcare_pets_${currentVet.id}`, JSON.stringify(updated));
+      }
+      return updated;
+    });
   };
 
   const addAppointment = (appointment: Appointment) => {
