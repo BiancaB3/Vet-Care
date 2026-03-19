@@ -37,6 +37,9 @@ Vet-Care/
 ├── src/
 └── README.md
 
+
+---
+
 ## ▶️ Como executar o projeto
 
 ### Pré-requisitos
