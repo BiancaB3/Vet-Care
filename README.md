@@ -95,7 +95,7 @@ Implementação de testes automatizados
 
 👩‍💻 Autora
 
-Bianca Bernardo
+Bianca Bez Birolo
 
 Estudante de Análise e Desenvolvimento de Sistemas
 Atuação em QA (testes manuais, exploratórios e API)
