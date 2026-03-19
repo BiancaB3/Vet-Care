@@ -1,70 +1,99 @@
-# Getting Started with Create React App
+# 🐾 VetCare
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+O **VetCare** é uma aplicação web voltada para a gestão veterinária, desenvolvida para facilitar o controle de **prontuários**, **agendamentos** e informações de pets em um único sistema.
 
-## Available Scripts
+O projeto simula um ambiente real de clínica veterinária, com foco em organização, praticidade e eficiência no acompanhamento dos atendimentos.
 
-In the project directory, you can run:
+---
 
-### `npm start`
+## 🚀 Funcionalidades
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+- Cadastro de pets  
+- Agendamento de consultas  
+- Registro de prontuários  
+- Visualização de informações clínicas  
+- Interface simples e intuitiva  
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+---
 
-### `npm test`
+## 🛠️ Tecnologias utilizadas
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+- Next.js 15  
+- React 19  
+- TypeScript  
+- Tailwind CSS  
+- Lucide React  
 
-### `npm run build`
+---
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## 📁 Estrutura do projeto
+Vet-Care/
+├── app/
+├── components/
+├── context/
+├── docs/
+├── lib/
+├── public/
+├── src/
+└── README.md
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## ▶️ Como executar o projeto
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### Pré-requisitos
 
-### `npm run eject`
+- Node.js instalado  
+- npm ou yarn  
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+### Passos
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```bash
+git clone https://github.com/BiancaB3/Vet-Care.git
+cd Vet-Care
+npm install
+npm run dev
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+A aplicação estará disponível em:
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+http://localhost:3000
 
-## Learn More
+🎯 Objetivo do projeto
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+Este projeto foi desenvolvido com foco em:
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+Prática de desenvolvimento front-end moderno
 
-### Code Splitting
+Organização e estruturação de código
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+Simulação de um sistema real
 
-### Analyzing the Bundle Size
+Evolução contínua com novas funcionalidades
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+🧪 Testes e Qualidade
 
-### Making a Progressive Web App
+Testes manuais para validação das funcionalidades
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+Testes exploratórios para identificação de falhas
 
-### Advanced Configuration
+Validação dos fluxos principais do sistema
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+📌 Melhorias futuras
 
-### Deployment
+Autenticação de usuários
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+Cadastro de tutores
 
-### `npm run build` fails to minify
+Histórico completo de atendimentos
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Integração com banco de dados
+
+Responsividade aprimorada
+
+Implementação de testes automatizados
+
+👩‍💻 Autora
+
+Bianca Bernardo
+
+Estudante de Análise e Desenvolvimento de Sistemas
+Atuação em QA (testes manuais, exploratórios e API)
+Em constante evolução na área de tecnologia
