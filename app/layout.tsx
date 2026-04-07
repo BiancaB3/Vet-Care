@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { VetProvider } from '@/context/VetContext';
+import { VetProvider } from './context/VetContext';
 import './globals.css';
 
 export const metadata: Metadata = {
