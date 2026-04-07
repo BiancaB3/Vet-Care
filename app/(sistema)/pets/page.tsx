@@ -1,3 +1,4 @@
-export default function PetsPage() {
-  return <div>Pets</div>;
+
+export default function Page() {
+  return <main className="p-4">Pets</main>;
 }

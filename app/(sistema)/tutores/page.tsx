@@ -1,3 +1,4 @@
-export default function TutoresPage() {
-  return <div>Tutores</div>;
+
+export default function Page() {
+  return <main className="p-4">Tutores</main>;
 }
