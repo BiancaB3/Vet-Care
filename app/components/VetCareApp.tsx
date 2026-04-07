@@ -7,7 +7,7 @@ import {
   Trash2, Edit2, UserPlus, PlusCircle, FilePlus, Eye, EyeOff,
   Cat, Feather, Mouse, Turtle, MessageCircle, Check, X as XIcon
 } from 'lucide-react';
-import { useVet, Veterinarian, Tutor, Pet, Appointment, Consultation } from '@/context/VetContext';
+import { useVet, Veterinarian, Tutor, Pet, Appointment, Consultation } from '../context/VetContext';
 
 // Mock data for testing
 const MOCK_VETERINARIANS = [
