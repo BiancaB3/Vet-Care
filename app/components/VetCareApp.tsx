@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -177,6 +178,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ appointments, pets, onDelet
 const VetCareApp: React.FC = () => {
   const { currentVet, tutors, addTutor, updateTutor, deleteTutor, pets, addPet, updatePet, deletePet, appointments, addAppointment, deleteAppointment, updateAppointmentStatus, consultations, addConsultation, updateConsultation, deleteConsultation } = useVet();
   const { login, logout } = useAuth();
+  const router = useRouter();
 
   const [screen, setScreen] = useState<'login' | 'register' | 'forgot' | 'dashboard'>('login');
   const [activeSection, setActiveSection] = useState('agenda');
@@ -251,9 +253,9 @@ const VetCareApp: React.FC = () => {
       });
       const { usuario, token } = response.data;
       login(usuario, token);
-      setScreen('dashboard');
       setLoginForm({ email: '', password: '' });
       showToast('Login realizado com sucesso!');
+      router.push('/sistema/home');
     } catch (error) {
       showToast('Email ou senha incorretos');
     }
