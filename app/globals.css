@@ -41,6 +41,23 @@
   display: flex;
   flex-direction: column;
 }
+
+/* Button primary from design-example */
+.btn-primary {
+  background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(107, 144, 128, 0.3);
+}
+
 /* Sidebar styles from design-example */
 .sidebar {
   background: linear-gradient(180deg, #5a7d71 0%, #4a6d61 100%);
