@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { api } from '../../lib/api';
+import { api } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import {
   Mail, Lock, Bell, LogOut, Calendar, Users, Dog, ClipboardList,
