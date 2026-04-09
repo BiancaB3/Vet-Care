@@ -2,58 +2,61 @@ package VetCare.Back.controllers;
 
 import VetCare.Back.model.entities.Veterinario;
 import VetCare.Back.model.repository.VeterinarioRepository;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
 @RestController
 @RequestMapping("/veterinarios")
+@Tag(name = "Veterinarios controller", description = "Controladora responsável por gerenciar os veterinários!")
 public class VeterinarioController {
 
     @Autowired
     private VeterinarioRepository veterinarioRepository;
 
     @GetMapping
+    @Operation(summary = "Listar todos", description = "Método para listar todos os veterinários!")
     public ResponseEntity<List<Veterinario>> listarTodos() {
         return ResponseEntity.ok(veterinarioRepository.findAll());
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "Consulta por ID", description = "Método responsável por consultar um único veterinário por ID!")
     public ResponseEntity<Veterinario> buscarPorId(@PathVariable Long id) {
-        var veterinario = veterinarioRepository.findById(id);
-        return veterinario.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+        return ResponseEntity.ok(veterinarioRepository.findById(id).orElse(null));
     }
 
     @PostMapping
-    public ResponseEntity<Veterinario> salvar(@RequestBody Veterinario veterinario) {
-        return ResponseEntity.ok(veterinarioRepository.save(veterinario));
+    @Operation(summary = "Criar veterinário", description = "Método responsável por criar um veterinário!")
+    public ResponseEntity<Long> salvar(@RequestBody Veterinario veterinario) {
+        return ResponseEntity.ok(veterinarioRepository.save(veterinario).getId());
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Veterinario> atualizar(@PathVariable Long id, @RequestBody Veterinario veterinario) {
-        var veterinarioBanco = veterinarioRepository.findById(id).orElse(null);
-        if (veterinarioBanco == null) {
-            return ResponseEntity.notFound().build();
+    @Operation(summary = "Atualizar veterinário", description = "Método responsável por atualizar um veterinário!")
+    public ResponseEntity<?> atualizar(@PathVariable Long id, @RequestBody Veterinario veterinario) {
+        var vetBanco = veterinarioRepository.findById(id).orElse(null);
+        if (vetBanco != null) {
+            vetBanco.setNome(veterinario.getNome());
+            vetBanco.setCrmv(veterinario.getCrmv());
+            vetBanco.setEspecialidade(veterinario.getEspecialidade());
+            vetBanco.setTelefone(veterinario.getTelefone());
+            vetBanco.setEmail(veterinario.getEmail());
+            vetBanco.setSenha(veterinario.getSenha());
+            veterinarioRepository.save(vetBanco);
+            return ResponseEntity.ok("Atualizado com sucesso!");
         }
-
-        veterinarioBanco.setNome(veterinario.getNome());
-        veterinarioBanco.setCrmv(veterinario.getCrmv());
-        veterinarioBanco.setEspecialidade(veterinario.getEspecialidade());
-        veterinarioBanco.setTelefone(veterinario.getTelefone());
-        veterinarioBanco.setEmail(veterinario.getEmail());
-
-        return ResponseEntity.ok(veterinarioRepository.save(veterinarioBanco));
+        return ResponseEntity.notFound().build();
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletar(@PathVariable Long id) {
-        if (!veterinarioRepository.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
+    @Operation(summary = "Deletar veterinário", description = "Método responsável por deletar um veterinário!")
+    public ResponseEntity<?> deletar(@PathVariable Long id) {
+        if (!veterinarioRepository.existsById(id)) return ResponseEntity.notFound().build();
         veterinarioRepository.deleteById(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok("Deletado com sucesso!");
     }
 }
-
