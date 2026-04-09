@@ -46,7 +46,7 @@
   background: linear-gradient(180deg, #5a7d71 0%, #4a6d61 100%);
   width: 280px;
   height: 100vh;
-  position: relative;
+  position: fixed;
   left: 0;
   top: 0;
   overflow-y: auto;

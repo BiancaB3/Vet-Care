@@ -1,7 +1,9 @@
+import { useAuth } from '../context/AuthContext';
+
 export default function Sidebar() {
   const { user, logout } = useAuth();
   return (
-  <aside className="sidebar fixed top-0 left-0 h-full flex flex-col z-40">
+  <aside className="sidebar flex flex-col">
       <div className="p-6 border-b border-emerald-600">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-12 h-12 bg-gradient-to-br from-[#6b9080] to-[#5a7d71] rounded-xl flex items-center justify-center">

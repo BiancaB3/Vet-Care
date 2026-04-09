@@ -1,10 +1,17 @@
+'use client';
+import { useAuth } from '../../context/AuthContext';
+
 export default function Home() {
+  const { user } = useAuth();
   // Placeholder values for demonstration
   const consultasHoje = 0;
   const totalPets = 0;
   const totalTutores = 0;
+
+  const initials = user?.nome ? user.nome.charAt(0).toUpperCase() : 'V';
+
   return (
-    <main className="main-content min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 flex flex-col">
       <header className="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <h1 className="text-2xl font-bold text-slate-900">Dashboard</h1>
@@ -17,10 +24,10 @@ export default function Home() {
             </div>
             <div className="flex items-center gap-3 pl-6 border-l border-slate-200">
               <div className="text-right">
-                <p className="text-sm font-semibold text-slate-900">Veterinário</p>
-                <p className="text-xs text-slate-500">CRMV</p>
+                <p className="text-sm font-semibold text-slate-900">{user?.nome ?? 'Veterinário'}</p>
+                <p className="text-xs text-slate-500">{(user as any)?.crmv ?? 'CRMV'}</p>
               </div>
-              <div className="profile-avatar gradient-primary">V</div>
+              <div className="profile-avatar gradient-primary">{initials}</div>
             </div>
           </div>
         </div>
@@ -88,6 +95,6 @@ export default function Home() {
           </div>
         </div>
       </div>
-    </main>
+    </div>
   );
 }
