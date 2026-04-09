@@ -1,9 +1,5 @@
 package VetCare.Back.model.enuns;
 
 public enum EnumStatusAgendamento {
-    AGENDADO,
-    CONFIRMADO,
-    CANCELADO,
-    CONCLUIDO
+    AGENDADO, CONFIRMADO, CANCELADO, REALIZADO
 }
-
