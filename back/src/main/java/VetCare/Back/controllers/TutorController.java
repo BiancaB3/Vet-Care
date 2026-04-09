@@ -2,57 +2,61 @@ package VetCare.Back.controllers;
 
 import VetCare.Back.model.entities.Tutor;
 import VetCare.Back.model.repository.TutorRepository;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
 @RestController
 @RequestMapping("/tutores")
+@Tag(name = "Tutores controller", description = "Controladora responsável por gerenciar os tutores!")
 public class TutorController {
 
     @Autowired
     private TutorRepository tutorRepository;
 
     @GetMapping
+    @Operation(summary = "Listar todos", description = "Método para listar todos os tutores!")
     public ResponseEntity<List<Tutor>> listarTodos() {
         return ResponseEntity.ok(tutorRepository.findAll());
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "Consulta por ID", description = "Método responsável por consultar um único tutor por ID!")
     public ResponseEntity<Tutor> buscarPorId(@PathVariable Long id) {
-        var tutor = tutorRepository.findById(id);
-        return tutor.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+        return ResponseEntity.ok(tutorRepository.findById(id).orElse(null));
     }
 
     @PostMapping
-    public ResponseEntity<Tutor> salvar(@RequestBody Tutor tutor) {
-        return ResponseEntity.ok(tutorRepository.save(tutor));
+    @Operation(summary = "Criar tutor", description = "Método responsável por criar um tutor!")
+    public ResponseEntity<Long> salvar(@RequestBody Tutor tutor) {
+        return ResponseEntity.ok(tutorRepository.save(tutor).getId());
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Tutor> atualizar(@PathVariable Long id, @RequestBody Tutor tutor) {
+    @Operation(summary = "Atualizar tutor", description = "Método responsável por atualizar um tutor!")
+    public ResponseEntity<?> atualizar(@PathVariable Long id, @RequestBody Tutor tutor) {
         var tutorBanco = tutorRepository.findById(id).orElse(null);
-        if (tutorBanco == null) {
-            return ResponseEntity.notFound().build();
+        if (tutorBanco != null) {
+            tutorBanco.setNome(tutor.getNome());
+            tutorBanco.setCpf(tutor.getCpf());
+            tutorBanco.setTelefone(tutor.getTelefone());
+            tutorBanco.setEmail(tutor.getEmail());
+            tutorBanco.setEndereco(tutor.getEndereco());
+            tutorBanco.setStatus(tutor.getStatus());
+            tutorRepository.save(tutorBanco);
+            return ResponseEntity.ok("Atualizado com sucesso!");
         }
-
-        tutorBanco.setNome(tutor.getNome());
-        tutorBanco.setCpf(tutor.getCpf());
-        tutorBanco.setTelefone(tutor.getTelefone());
-        tutorBanco.setEmail(tutor.getEmail());
-        tutorBanco.setEndereco(tutor.getEndereco());
-        return ResponseEntity.ok(tutorRepository.save(tutorBanco));
+        return ResponseEntity.notFound().build();
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletar(@PathVariable Long id) {
-        if (!tutorRepository.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
+    @Operation(summary = "Deletar tutor", description = "Método responsável por deletar um tutor!")
+    public ResponseEntity<?> deletar(@PathVariable Long id) {
+        if (!tutorRepository.existsById(id)) return ResponseEntity.notFound().build();
         tutorRepository.deleteById(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok("Deletado com sucesso!");
     }
 }
-
