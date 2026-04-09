@@ -9,12 +9,13 @@ import org.springframework.context.annotation.Configuration;
 public class SwaggerConfiguration {
 
     @Bean
-    public OpenAPI customOpenAPI() {
+    public OpenAPI customOpenApi() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("VetCare Back API")
-                        .version("1.0.0")
-                        .description("Documentacao da API VetCare Back"));
+                        .title("VetCare API")
+                        .version("1.0")
+                        .description("API responsável por gerenciar o sistema veterinário VetCare!")
+                        .termsOfService("http://localhost:3000")
+                );
     }
 }
-
