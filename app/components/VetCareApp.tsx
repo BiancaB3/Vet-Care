@@ -1,9 +1,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { api } from '../lib/api';
-import { useAuth } from '../context/AuthContext';
 import {
   Mail, Lock, Bell, LogOut, Calendar, Users, Dog, ClipboardList,
   Plus, Search, X, TrendingUp, CalendarX, User, CheckCircle,
@@ -176,9 +173,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ appointments, pets, onDelet
 };
 
 const VetCareApp: React.FC = () => {
-  const { currentVet, tutors, addTutor, updateTutor, deleteTutor, pets, addPet, updatePet, deletePet, appointments, addAppointment, deleteAppointment, updateAppointmentStatus, consultations, addConsultation, updateConsultation, deleteConsultation } = useVet();
-  const { login, logout } = useAuth();
-  const router = useRouter();
+  const { currentVet, login, logout, tutors, addTutor, updateTutor, deleteTutor, pets, addPet, updatePet, deletePet, appointments, addAppointment, deleteAppointment, updateAppointmentStatus, consultations, addConsultation, updateConsultation, deleteConsultation } = useVet();
 
   const [screen, setScreen] = useState<'login' | 'register' | 'forgot' | 'dashboard'>('login');
   const [activeSection, setActiveSection] = useState('agenda');
@@ -244,19 +239,18 @@ const VetCareApp: React.FC = () => {
     return `(${digits.slice(0, 2)})${digits.slice(2, 7)}-${digits.slice(7, 11)}`;
   };
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      const response = await api.post('/auth/login', {
-        email: loginForm.email,
-        senha: loginForm.password,
-      });
-      const { usuario, token } = response.data;
-      login(usuario, token);
+    const vet = MOCK_VETERINARIANS.find(
+      (v) => v.email === loginForm.email && loginForm.password === '123456'
+    );
+
+    if (vet) {
+      login(vet);
+      setScreen('dashboard');
       setLoginForm({ email: '', password: '' });
       showToast('Login realizado com sucesso!');
-      router.push('/sistema/home');
-    } catch (error) {
+    } else {
       showToast('Email ou senha incorretos');
     }
   };
