@@ -1,9 +1,10 @@
+'use client';
 
 import Link from 'next/link';
 import { useAuth } from '../context/AuthContext';
 
 export default function Header() {
-  const { veterinario, logout } = useAuth();
+  const { currentVet, logout } = useAuth();
 
   return (
     <header className="w-full sticky top-0 z-50 bg-blue-600">
@@ -22,8 +23,8 @@ export default function Header() {
         </div>
         <div className="flex items-center gap-3">
           <div className="flex flex-col text-right">
-            <span className="text-sm font-bold text-white">{veterinario?.nome ?? 'Veterinário'}</span>
-            <span className="text-xs text-zinc-200">{veterinario?.crmv ?? 'CRMV'}</span>
+            <span className="text-sm font-bold text-white">{currentVet?.name ?? 'Veterinário'}</span>
+            <span className="text-xs text-zinc-200">{currentVet?.crmv ?? 'CRMV'}</span>
           </div>
           <button onClick={logout} className="px-3 py-2 rounded bg-blue-800 text-white hover:bg-blue-900">Sair</button>
         </div>
