@@ -18,6 +18,7 @@ export interface Tutor {
   name: string;
   email: string;
   phone: string;
+  photo?: string;
   createdAt: Date;
 }
 
@@ -30,6 +31,7 @@ export interface Pet {
   breed?: string;
   age?: number;
   weight?: number;
+  photo?: string;
   createdAt: Date;
 }
 
@@ -110,6 +112,7 @@ export function VetProvider({ children }: { children: ReactNode }) {
         { id: 'tutor3', vetId: currentVet.id, name: 'Ana Maria Braga', email: 'acorda.menina@maisvoce.com', phone: '(21) 98765-4321', createdAt: new Date() },
         { id: 'tutor4', vetId: currentVet.id, name: 'Neymar Junior', email: 'cai.cai@menino-ney.br', phone: '(13) 91010-1010', createdAt: new Date() },
         { id: 'tutor6', vetId: currentVet.id, name: 'Gretchen', email: 'rainha@bundinha.com', phone: '(11) 90000-0002', createdAt: new Date() },
+        { id: 'tutor7', vetId: currentVet.id, name: 'Bianca Bernardo Bez Birolo', email: 'biancabezz@icloud.com', phone: '(48) 99181-7218', createdAt: new Date() },
       ];
       setTutors(defaultTutors);
       localStorage.setItem(`vetcare_tutores_${currentVet.id}`, JSON.stringify(defaultTutors));
@@ -119,6 +122,7 @@ export function VetProvider({ children }: { children: ReactNode }) {
         { id: 'pet3', vetId: currentVet.id, tutorId: 'tutor3', name: 'Louro José II', species: 'Ave', breed: 'Papagaio-verdadeiro', age: 1, weight: 1, createdAt: new Date() },
         { id: 'pet4', vetId: currentVet.id, tutorId: 'tutor4', name: 'Mbappé', species: 'Cão', breed: 'Bulldog Francês (corre muito)', age: 3, weight: 25, createdAt: new Date() },
         { id: 'pet6', vetId: currentVet.id, tutorId: 'tutor6', name: 'Piripiri', species: 'Cão', breed: 'Poodle Gigante', age: 10, weight: 4.2, createdAt: new Date() },
+        { id: 'pet7', vetId: currentVet.id, tutorId: 'tutor7', name: 'Joe', species: 'Cão', breed: 'Labrador', age: 7, weight: 10, createdAt: new Date() },
       ];
       setPets(defaultPets);
       localStorage.setItem(`vetcare_pets_${currentVet.id}`, JSON.stringify(defaultPets));
@@ -229,7 +233,7 @@ export function VetProvider({ children }: { children: ReactNode }) {
   };
 
   const updateAppointment = (id: string, data: Partial<Appointment>) => {
-    setAppointments(appointments.map(a => (a.id === id ? { ...a, ...data } : a)));
+    setAppointments(prev => prev.map(a => (a.id === id ? { ...a, ...data } : a)));
   };
 
   const deleteAppointment = (id: string) => {
@@ -237,7 +241,7 @@ export function VetProvider({ children }: { children: ReactNode }) {
   };
 
   const updateAppointmentStatus = (id: string, status: Appointment['status']) => {
-    setAppointments(appointments.map(a => (a.id === id ? { ...a, status } : a)));
+    setAppointments(prev => prev.map(a => (a.id === id ? { ...a, status } : a)));
   };
 
   const addConsultation = (consultation: Consultation) => {

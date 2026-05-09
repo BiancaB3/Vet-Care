@@ -183,7 +183,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({ appointments, pets, onDelet
 const emptyAppointmentForm = (): AppointmentDraft => emptyDraftByKind('appointment');
 
 const VetCareApp: React.FC = () => {
-  const { currentVet, login, logout, tutors, addTutor, updateTutor, deleteTutor, pets, addPet, updatePet, deletePet, appointments, addAppointment, deleteAppointment, updateAppointmentStatus, consultations, addConsultation, updateConsultation, deleteConsultation } = useVet();
+  const { currentVet, login, logout, tutors, addTutor, updateTutor, deleteTutor, pets, addPet, updatePet, deletePet, appointments, addAppointment, updateAppointment, deleteAppointment, updateAppointmentStatus, consultations, addConsultation, updateConsultation, deleteConsultation } = useVet();
   const { getDraft, salvarProgresso, limparRascunho, temRascunho } = useDraft();
   const skipDraftSaveRef = useRef<Record<DraftKind, boolean>>({
     appointment: false,
@@ -242,6 +242,8 @@ const VetCareApp: React.FC = () => {
   const [forgotForm, setForgotForm] = useState({ email: '' });
   const [forgotSuccess, setForgotSuccess] = useState(false);
   const [tutorForm, setTutorForm] = useState({ name: '', email: '', phone: '' });
+  const [tutorPhoto, setTutorPhoto] = useState<string>('');
+  const [petPhoto, setPetPhoto] = useState<string>('');
   const [appointmentForm, setAppointmentForm] = useState<AppointmentDraft>(emptyAppointmentForm());
   const [petForm, setPetForm] = useState<PetDraft>(() => emptyDraftByKind('pet'));
   const [consultationForm, setConsultationForm] = useState<ConsultationDraft>(() => emptyDraftByKind('consultation'));
@@ -313,8 +315,10 @@ const VetCareApp: React.FC = () => {
         setTutorForm(
           tutor ? { name: tutor.name, email: tutor.email, phone: tutor.phone } : { name: '', email: '', phone: '' }
         );
+        setTutorPhoto(tutor?.photo ?? '');
       } else {
         setTutorForm({ name: '', email: '', phone: '' });
+        setTutorPhoto('');
       }
     } else if (type === 'pet') {
       setEditingPetId(id);
@@ -335,8 +339,10 @@ const VetCareApp: React.FC = () => {
               }
             : emptyDraftByKind('pet')
         );
+        setPetPhoto(p?.photo ?? '');
       } else {
         setPetForm(emptyDraftByKind('pet'));
+        setPetPhoto('');
       }
     } else if (type === 'consultation') {
       setEditingConsultationId(id);
@@ -410,6 +416,8 @@ const VetCareApp: React.FC = () => {
     setEditingConsultationId(null);
     setEditingPetId(null);
     setEditingTutorId(null);
+    setTutorPhoto('');
+    setPetPhoto('');
   };
 
   // Form Handlers
@@ -422,6 +430,7 @@ const VetCareApp: React.FC = () => {
         name: tutorForm.name,
         email: tutorForm.email,
         phone: tutorForm.phone,
+        photo: tutorPhoto || undefined,
       });
       setNotifications([...notifications, { id: Date.now().toString(), message: `Tutor "${tutorForm.name}" atualizado com sucesso`, type: 'edicao' }]);
       setHasUnread(true);
@@ -433,6 +442,7 @@ const VetCareApp: React.FC = () => {
         name: tutorForm.name,
         email: tutorForm.email,
         phone: tutorForm.phone,
+        photo: tutorPhoto || undefined,
         createdAt: new Date(),
       };
       addTutor(newTutor);
@@ -443,6 +453,7 @@ const VetCareApp: React.FC = () => {
     closeModal();
     setEditingTutorId(null);
     setTutorForm({ name: '', email: '', phone: '' });
+    setTutorPhoto('');
   };
 
   const handleAddPet = (e: React.FormEvent<HTMLFormElement>) => {
@@ -458,6 +469,7 @@ const VetCareApp: React.FC = () => {
       breed: petForm.breed,
       age: petForm.age ? parseInt(petForm.age, 10) : undefined,
       weight: petForm.weight ? parseFloat(petForm.weight) : undefined,
+      photo: petPhoto || undefined,
       createdAt: new Date(),
     };
     if (editingPetId) {
@@ -470,6 +482,7 @@ const VetCareApp: React.FC = () => {
     setHasUnread(true);
     showToast(editingPetId ? 'Pet atualizado com sucesso!' : 'Pet cadastrado com sucesso!');
     setPetForm(emptyDraftByKind('pet'));
+    setPetPhoto('');
     closeModal();
     setEditingPetId(null);
   };
@@ -485,7 +498,7 @@ const VetCareApp: React.FC = () => {
       time: appointmentForm.time,
       reason: appointmentForm.reason,
       status: 'agendado',
-      confirmed: true,
+      confirmed: false,
       createdAt: new Date(),
     };
     addAppointment(newAppointment);
@@ -867,7 +880,7 @@ const VetCareApp: React.FC = () => {
                     <Bell className="w-5 h-5 text-primary" />
                     <h4 className="text-sm font-semibold text-slate-700">Notificações</h4>
                   </div>
-                  <button onClick={() => { setNotifications([]); setHasUnread(false); }} className="p-1 hover:bg-slate-100 rounded-full">
+                  <button onClick={() => { setNotifications([]); setHasUnread(false); setNotificationsOpen(false); }} className="p-1 hover:bg-slate-100 rounded-full">
                     <X className="w-4 h-4 text-slate-400" />
                   </button>
                 </div>
@@ -1109,30 +1122,32 @@ const VetCareApp: React.FC = () => {
                   <p className="text-slate-400">Nenhum tutor cadastrado</p>
                 </div>
               ) : (
-                <div className="space-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {currentVetTutors
                     .filter(t => t.name.toLowerCase().includes(tutorSearch.toLowerCase()))
                     .map((tutor) => (
-                      <div key={tutor.id} className="modern-card rounded-xl p-4 border border-slate-200 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <User className="w-6 h-6 text-primary" />
-                          <div>
-                            <h4 className="font-semibold">{tutor.name}</h4>
-                            <p className="text-xs text-slate-500">{tutor.email} • {tutor.phone}</p>
+                      <div key={tutor.id} className="modern-card rounded-xl p-4 border border-slate-200">
+                        <div className="flex items-start justify-between mb-3">
+                          {tutor.photo
+                            ? <img src={tutor.photo} alt={tutor.name} className="w-8 h-8 rounded-full object-cover" />
+                            : <User className="w-6 h-6 text-primary" />
+                          }
+                          <div className="flex gap-2">
+                            <button
+                              type="button"
+                              onClick={() => openModal('tutor', tutor.id)}
+                              className="p-1 hover:bg-blue-50 rounded"
+                            >
+                              <Edit2 className="w-4 h-4 text-slate-400 hover:text-blue-500" />
+                            </button>
+                            <button onClick={() => handleDeleteTutor(tutor.id)} className="p-1 hover:bg-red-50 rounded">
+                              <Trash2 className="w-4 h-4 text-slate-400 hover:text-red-500" />
+                            </button>
                           </div>
                         </div>
-                        <div className="flex gap-2">
-                          <button
-                            type="button"
-                            onClick={() => openModal('tutor', tutor.id)}
-                            className="p-2 hover:bg-blue-50 rounded-lg"
-                          >
-                            <Edit2 className="w-4 h-4 text-slate-400 hover:text-blue-500" />
-                          </button>
-                          <button onClick={() => handleDeleteTutor(tutor.id)} className="p-2 hover:bg-red-50 rounded-lg">
-                            <Trash2 className="w-4 h-4 text-slate-400 hover:text-red-500" />
-                          </button>
-                        </div>
+                        <h4 className="font-semibold mb-1">{tutor.name}</h4>
+                        <p className="text-xs text-slate-500">{tutor.email}</p>
+                        <p className="text-xs text-slate-500">{tutor.phone}</p>
                       </div>
                     ))}
                 </div>
@@ -1145,7 +1160,7 @@ const VetCareApp: React.FC = () => {
               <div className="flex items-center justify-between mb-8">
                 <div>
                   <h2 className="text-3xl font-bold text-primary">Cadastro de Pets</h2>
-                  <p className="text-slate-400 mt-2">Pacientes cadastrados</p>
+                  <p className="text-slate-400 mt-2">Pets cadastrados</p>
                 </div>
                 <button
                   type="button"
@@ -1208,7 +1223,7 @@ const VetCareApp: React.FC = () => {
               <div className="flex items-center justify-between mb-8">
                 <div>
                   <h2 className="text-3xl font-bold text-primary">Prontuarios</h2>
-                  <p className="text-slate-400 mt-2">Historico de consultas</p>
+                  <p className="text-slate-400 mt-2">Historico de prontuários</p>
                 </div>
                 <button
                   type="button"
@@ -1280,7 +1295,7 @@ const VetCareApp: React.FC = () => {
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           {isModalOpen === 'tutor' && (
-            <div className="bg-white rounded-3xl w-full max-w-lg max-h-[90vh] overflow-y-auto border border-slate-200 shadow-2xl">
+            <div className="bg-white rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-slate-200 shadow-2xl">
               <div className="p-6 border-b flex items-center justify-between sticky top-0 bg-white">
                 <div className="flex items-center gap-3">
                   <Users className="w-6 h-6 text-primary" />
@@ -1316,16 +1331,54 @@ const VetCareApp: React.FC = () => {
                   </div>
                 )}
                 <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">Foto do Tutor</label>
+                  <div className="flex items-center gap-4">
+                    <div className="relative w-20 h-20 rounded-full border-2 border-dashed border-slate-300 flex items-center justify-center overflow-hidden bg-slate-50 hover:border-primary transition-colors cursor-pointer"
+                      onClick={() => document.getElementById('tutor-photo-input')?.click()}>
+                      {tutorPhoto
+                        ? <img src={tutorPhoto} alt="Foto do tutor" className="w-full h-full object-cover" />
+                        : <div className="flex flex-col items-center gap-1 text-slate-400">
+                            <User className="w-7 h-7" />
+                            <span className="text-xs">Foto</span>
+                          </div>
+                      }
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <button type="button" onClick={() => document.getElementById('tutor-photo-input')?.click()}
+                        className="px-3 py-2 text-sm font-medium rounded-xl border border-primary text-primary hover:bg-primary/10 transition-all">
+                        {tutorPhoto ? 'Alterar foto' : 'Enviar foto'}
+                      </button>
+                      {tutorPhoto && (
+                        <button type="button" onClick={() => setTutorPhoto('')}
+                          className="px-3 py-2 text-sm font-medium rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-100 transition-all">
+                          Remover
+                        </button>
+                      )}
+                    </div>
+                    <input id="tutor-photo-input" type="file" accept="image/*" className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        const reader = new FileReader();
+                        reader.onload = (ev) => setTutorPhoto(ev.target?.result as string);
+                        reader.readAsDataURL(file);
+                        e.target.value = '';
+                      }} />
+                  </div>
+                </div>
+                <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">Nome Completo</label>
                   <input type="text" value={tutorForm.name} onChange={(e) => setTutorForm({ ...tutorForm, name: e.target.value })} placeholder="Nome Completo" required className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium" />
                 </div>
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">Email</label>
-                  <input type="email" value={tutorForm.email} onChange={(e) => setTutorForm({ ...tutorForm, email: e.target.value })} placeholder="Email" required className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium" />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">Telefone</label>
-                  <input type="tel" value={tutorForm.phone} onChange={(e) => setTutorForm({ ...tutorForm, phone: formatPhone(e.target.value) })} placeholder="(XX)XXXXX-XXXX" required className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium" />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">Email</label>
+                    <input type="email" value={tutorForm.email} onChange={(e) => setTutorForm({ ...tutorForm, email: e.target.value })} placeholder="Email" required className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">Telefone</label>
+                    <input type="tel" value={tutorForm.phone} onChange={(e) => setTutorForm({ ...tutorForm, phone: formatPhone(e.target.value) })} placeholder="(XX)XXXXX-XXXX" required className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium" />
+                  </div>
                 </div>
                 <div className="flex gap-3 pt-4">
                   <button type="button" onClick={closeModal} className="flex-1 px-4 py-3 border-2 text-slate-700 font-bold rounded-xl hover:bg-slate-100">
@@ -1340,7 +1393,7 @@ const VetCareApp: React.FC = () => {
           )}
 
           {isModalOpen === 'pet' && (
-            <div className="bg-white rounded-3xl w-full max-w-lg max-h-[90vh] overflow-y-auto border border-slate-200 shadow-2xl">
+            <div className="bg-white rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-slate-200 shadow-2xl">
               <div className="p-6 border-b flex items-center justify-between sticky top-0 bg-white">
                 <div className="flex items-center gap-3">
                   <Dog className="w-6 h-6 text-primary" />
@@ -1378,77 +1431,119 @@ const VetCareApp: React.FC = () => {
                   </div>
                 )}
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">Tutor</label>
-                  <select
-                    value={petForm.tutorId}
-                    onChange={(e) => setPetForm({ ...petForm, tutorId: e.target.value })}
-                    required
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium"
-                  >
-                    <option value="">Selecione o tutor</option>
-                    {currentVetTutors.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-                  </select>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">Foto do Pet</label>
+                  <div className="flex items-center gap-4">
+                    <div className="relative w-20 h-20 rounded-full border-2 border-dashed border-slate-300 flex items-center justify-center overflow-hidden bg-slate-50 hover:border-primary transition-colors cursor-pointer"
+                      onClick={() => document.getElementById('pet-photo-input')?.click()}>
+                      {petPhoto
+                        ? <img src={petPhoto} alt="Foto do pet" className="w-full h-full object-cover" />
+                        : <div className="flex flex-col items-center gap-1 text-slate-400">
+                            <Dog className="w-7 h-7" />
+                            <span className="text-xs">Foto</span>
+                          </div>
+                      }
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <button type="button" onClick={() => document.getElementById('pet-photo-input')?.click()}
+                        className="px-3 py-2 text-sm font-medium rounded-xl border border-primary text-primary hover:bg-primary/10 transition-all">
+                        {petPhoto ? 'Alterar foto' : 'Enviar foto'}
+                      </button>
+                      {petPhoto && (
+                        <button type="button" onClick={() => setPetPhoto('')}
+                          className="px-3 py-2 text-sm font-medium rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-100 transition-all">
+                          Remover
+                        </button>
+                      )}
+                    </div>
+                    <input id="pet-photo-input" type="file" accept="image/*" className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        const reader = new FileReader();
+                        reader.onload = (ev) => setPetPhoto(ev.target?.result as string);
+                        reader.readAsDataURL(file);
+                        e.target.value = '';
+                      }} />
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">Nome do Pet</label>
-                  <input
-                    type="text"
-                    value={petForm.name}
-                    onChange={(e) => setPetForm({ ...petForm, name: e.target.value })}
-                    placeholder="Nome do Pet"
-                    required
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium"
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">Tutor</label>
+                    <select
+                      value={petForm.tutorId}
+                      onChange={(e) => setPetForm({ ...petForm, tutorId: e.target.value })}
+                      required
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium"
+                    >
+                      <option value="">Selecione o tutor</option>
+                      {currentVetTutors.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">Nome do Pet</label>
+                    <input
+                      type="text"
+                      value={petForm.name}
+                      onChange={(e) => setPetForm({ ...petForm, name: e.target.value })}
+                      placeholder="Nome do Pet"
+                      required
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium"
+                    />
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">Espécie</label>
-                  <select
-                    value={petForm.species}
-                    onChange={(e) => setPetForm({ ...petForm, species: e.target.value })}
-                    required
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium"
-                  >
-                    <option value="">Selecione espécie</option>
-                    <option value="Cao">Cão</option>
-                    <option value="Gato">Gato</option>
-                    <option value="Ave">Ave</option>
-                    <option value="Reptil">Réptil</option>
-                    <option value="Roedor">Roedor</option>
-                    <option value="Outro">Outro</option>
-                  </select>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">Raça</label>
+                    <input
+                      type="text"
+                      value={petForm.breed}
+                      onChange={(e) => setPetForm({ ...petForm, breed: e.target.value })}
+                      placeholder="Raça"
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">Espécie</label>
+                    <select
+                      value={petForm.species}
+                      onChange={(e) => setPetForm({ ...petForm, species: e.target.value })}
+                      required
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium"
+                    >
+                      <option value="">Selecione espécie</option>
+                      <option value="Cao">Cão</option>
+                      <option value="Gato">Gato</option>
+                      <option value="Ave">Ave</option>
+                      <option value="Reptil">Réptil</option>
+                      <option value="Roedor">Roedor</option>
+                      <option value="Outro">Outro</option>
+                    </select>
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">Raça</label>
-                  <input
-                    type="text"
-                    value={petForm.breed}
-                    onChange={(e) => setPetForm({ ...petForm, breed: e.target.value })}
-                    placeholder="Raça"
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">Idade</label>
-                  <input
-                    type="number"
-                    min={0}
-                    value={petForm.age}
-                    onChange={(e) => setPetForm({ ...petForm, age: e.target.value })}
-                    placeholder="Idade (anos)"
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">Peso (kg)</label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    min={0}
-                    value={petForm.weight}
-                    onChange={(e) => setPetForm({ ...petForm, weight: e.target.value })}
-                    placeholder="Peso em kg"
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium"
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">Idade (anos)</label>
+                    <input
+                      type="number"
+                      min={0}
+                      value={petForm.age}
+                      onChange={(e) => setPetForm({ ...petForm, age: e.target.value })}
+                      placeholder="Idade"
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">Peso (kg)</label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      min={0}
+                      value={petForm.weight}
+                      onChange={(e) => setPetForm({ ...petForm, weight: e.target.value })}
+                      placeholder="Peso em kg"
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium"
+                    />
+                  </div>
                 </div>
                 <div className="flex gap-3 pt-4">
                   <button type="button" onClick={closeModal} className="flex-1 px-4 py-3 border-2 text-slate-700 font-bold rounded-xl hover:bg-slate-100">
@@ -1763,11 +1858,7 @@ const VetCareApp: React.FC = () => {
                     </span>
                     <button
                       onClick={() => {
-                        updateAppointmentStatus(
-                          appointment.id,
-                          appointment.confirmed ? 'agendado' : 'cancelado'
-                        );
-                        setAppointmentDetailsModal(null);
+                        updateAppointment(appointment.id, { confirmed: !appointment.confirmed });
                         showToast(`Consulta ${!appointment.confirmed ? 'confirmada' : 'marcada como pendente'}!`);
                       }}
                       className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${
