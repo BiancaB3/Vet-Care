@@ -5,6 +5,8 @@ import VetCare.Back.model.repository.AgendamentoRepository;
 import VetCare.Back.model.repository.PetRepository;
 import VetCare.Back.model.repository.ProntuarioRepository;
 import VetCare.Back.model.repository.VeterinarioRepository;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,6 +15,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/prontuarios")
+@Tag(name = "Prontuarios controller", description = "Controladora responsável por gerenciar os prontuários!")
 public class ProntuarioController {
 
     @Autowired
@@ -28,17 +31,20 @@ public class ProntuarioController {
     private AgendamentoRepository agendamentoRepository;
 
     @GetMapping
+    @Operation(summary = "Listar todos", description = "Método para listar todos os prontuários!")
     public ResponseEntity<List<Prontuario>> listarTodos() {
         return ResponseEntity.ok(prontuarioRepository.findAll());
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "Consulta por ID", description = "Método responsável por consultar um único prontuário por ID!")
     public ResponseEntity<Prontuario> buscarPorId(@PathVariable Long id) {
         var prontuario = prontuarioRepository.findById(id);
         return prontuario.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping
+    @Operation(summary = "Criar prontuário", description = "Método responsável por criar um prontuário!")
     public ResponseEntity<?> salvar(@RequestBody Prontuario prontuario) {
         if (prontuario.getPet() == null || prontuario.getPet().getId() == null) {
             return ResponseEntity.badRequest().body("Informe pet.id para salvar o prontuario.");
@@ -70,6 +76,7 @@ public class ProntuarioController {
     }
 
     @PutMapping("/{id}")
+    @Operation(summary = "Atualizar prontuário", description = "Método responsável por atualizar um prontuário!")
     public ResponseEntity<?> atualizar(@PathVariable Long id, @RequestBody Prontuario prontuario) {
         var prontuarioBanco = prontuarioRepository.findById(id).orElse(null);
         if (prontuarioBanco == null) {
@@ -111,6 +118,7 @@ public class ProntuarioController {
     }
 
     @DeleteMapping("/{id}")
+    @Operation(summary = "Deletar prontuário", description = "Método responsável por deletar um prontuário!")
     public ResponseEntity<Void> deletar(@PathVariable Long id) {
         if (!prontuarioRepository.existsById(id)) {
             return ResponseEntity.notFound().build();

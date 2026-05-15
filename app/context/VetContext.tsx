@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { useAuth } from './AuthContext';
 
 // Type Definitions
 export interface Veterinarian {
@@ -17,6 +18,7 @@ export interface Tutor {
   name: string;
   email: string;
   phone: string;
+  photo?: string;
   createdAt: Date;
 }
 
@@ -29,6 +31,7 @@ export interface Pet {
   breed?: string;
   age?: number;
   weight?: number;
+  photo?: string;
   createdAt: Date;
 }
 
@@ -83,68 +86,70 @@ interface VetContextType {
 const VetContext = createContext<VetContextType | undefined>(undefined);
 
 export function VetProvider({ children }: { children: ReactNode }) {
-  const [currentVet, setCurrentVet] = useState<Veterinarian | null>(null);
+  const { currentVet, login, logout } = useAuth();
   const [tutors, setTutors] = useState<Tutor[]>([]);
   const [pets, setPets] = useState<Pet[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [consultations, setConsultations] = useState<Consultation[]>([]);
 
-  // Load tutors and pets from localStorage when vet logs in
-  const login = (vet: Veterinarian) => {
-    setCurrentVet(vet);
-    // TUTORES
-    if (typeof window !== 'undefined') {
-      const storedTutors = localStorage.getItem(`vetcare_tutores_${vet.id}`);
-      // Sempre sobrescreve os dados ao logar com maria@vetcare.com
-      if (vet.email === 'maria@vetcare.com') {
-        const defaultTutors = [
-          { id: 'tutor1', vetId: vet.id, name: 'Mel Maia', email: 'mel.maia@tiktok.com', phone: '(21) 99888-7766', createdAt: new Date() },
-          { id: 'tutor2', vetId: vet.id, name: 'Fausto Silva', email: 'loco.bicho@domingao.com', phone: '(11) 91234-5678', createdAt: new Date() },
-          { id: 'tutor3', vetId: vet.id, name: 'Ana Maria Braga', email: 'acorda.menina@maisvoce.com', phone: '(21) 98765-4321', createdAt: new Date() },
-          { id: 'tutor4', vetId: vet.id, name: 'Neymar Junior', email: 'cai.cai@menino-ney.br', phone: '(13) 91010-1010', createdAt: new Date() },
-          { id: 'tutor6', vetId: vet.id, name: 'Gretchen', email: 'rainha@bundinha.com', phone: '(11) 90000-0002', createdAt: new Date() },
-        ];
-        setTutors(defaultTutors);
-        localStorage.setItem(`vetcare_tutores_${vet.id}`, JSON.stringify(defaultTutors));
-        const defaultPets = [
-          { id: 'pet1', vetId: vet.id, tutorId: 'tutor1', name: 'Fofinho de Neve', species: 'Cão', breed: 'Lulu da Pomerânia', age: 2, weight: 2, createdAt: new Date() },
-          { id: 'pet2', vetId: vet.id, tutorId: 'tutor2', name: 'Churrasquinho', species: 'Cão', breed: 'Vira-lata Caramelo', age: 5, weight: 12, createdAt: new Date() },
-          { id: 'pet3', vetId: vet.id, tutorId: 'tutor3', name: 'Louro José II', species: 'Ave', breed: 'Papagaio-verdadeiro', age: 1, weight: 1, createdAt: new Date() },
-          { id: 'pet4', vetId: vet.id, tutorId: 'tutor4', name: 'Mbappé', species: 'Cão', breed: 'Bulldog Francês (corre muito)', age: 3, weight: 25, createdAt: new Date() },
-          { id: 'pet6', vetId: vet.id, tutorId: 'tutor6', name: 'Piripiri', species: 'Cão', breed: 'Poodle Gigante', age: 10, weight: 4.2, createdAt: new Date() },
-        ];
-        setPets(defaultPets);
-        localStorage.setItem(`vetcare_pets_${vet.id}`, JSON.stringify(defaultPets));
-      } else {
-        if (storedTutors) {
-          try {
-            setTutors(JSON.parse(storedTutors));
-          } catch {
-            setTutors([]);
-          }
-        } else {
-          setTutors([]);
-        }
-        if (storedPets) {
-          try {
-            setPets(JSON.parse(storedPets));
-          } catch {
-            setPets([]);
-          }
-        } else {
-          setPets([]);
-        }
-      }
+  // Load tutors and pets when auth vet changes (login, hydrate, logout)
+  useEffect(() => {
+    if (!currentVet) {
+      setTutors([]);
+      setPets([]);
+      setAppointments([]);
+      setConsultations([]);
+      return;
     }
-  };
 
-  const logout = () => {
-    setCurrentVet(null);
-    setTutors([]);
-    setPets([]);
-    setAppointments([]);
-    setConsultations([]);
-  };
+    if (typeof window === 'undefined') return;
+
+    // Sempre sobrescreve os dados ao logar com maria@vetcare.com
+    if (currentVet.email === 'maria@vetcare.com') {
+      const defaultTutors = [
+        { id: 'tutor1', vetId: currentVet.id, name: 'Mel Maia', email: 'mel.maia@tiktok.com', phone: '(21) 99888-7766', createdAt: new Date() },
+        { id: 'tutor2', vetId: currentVet.id, name: 'Fausto Silva', email: 'loco.bicho@domingao.com', phone: '(11) 91234-5678', createdAt: new Date() },
+        { id: 'tutor3', vetId: currentVet.id, name: 'Ana Maria Braga', email: 'acorda.menina@maisvoce.com', phone: '(21) 98765-4321', createdAt: new Date() },
+        { id: 'tutor4', vetId: currentVet.id, name: 'Neymar Junior', email: 'cai.cai@menino-ney.br', phone: '(13) 91010-1010', createdAt: new Date() },
+        { id: 'tutor6', vetId: currentVet.id, name: 'Gretchen', email: 'rainha@bundinha.com', phone: '(11) 90000-0002', createdAt: new Date() },
+        { id: 'tutor7', vetId: currentVet.id, name: 'Bianca Bernardo Bez Birolo', email: 'biancabezz@icloud.com', phone: '(48) 99181-7218', createdAt: new Date() },
+      ];
+      setTutors(defaultTutors);
+      localStorage.setItem(`vetcare_tutores_${currentVet.id}`, JSON.stringify(defaultTutors));
+      const defaultPets = [
+        { id: 'pet1', vetId: currentVet.id, tutorId: 'tutor1', name: 'Fofinho de Neve', species: 'Cão', breed: 'Lulu da Pomerânia', age: 2, weight: 2, createdAt: new Date() },
+        { id: 'pet2', vetId: currentVet.id, tutorId: 'tutor2', name: 'Churrasquinho', species: 'Cão', breed: 'Vira-lata Caramelo', age: 5, weight: 12, createdAt: new Date() },
+        { id: 'pet3', vetId: currentVet.id, tutorId: 'tutor3', name: 'Louro José II', species: 'Ave', breed: 'Papagaio-verdadeiro', age: 1, weight: 1, createdAt: new Date() },
+        { id: 'pet4', vetId: currentVet.id, tutorId: 'tutor4', name: 'Mbappé', species: 'Cão', breed: 'Bulldog Francês (corre muito)', age: 3, weight: 25, createdAt: new Date() },
+        { id: 'pet6', vetId: currentVet.id, tutorId: 'tutor6', name: 'Piripiri', species: 'Cão', breed: 'Poodle Gigante', age: 10, weight: 4.2, createdAt: new Date() },
+        { id: 'pet7', vetId: currentVet.id, tutorId: 'tutor7', name: 'Joe', species: 'Cão', breed: 'Labrador', age: 7, weight: 10, createdAt: new Date() },
+      ];
+      setPets(defaultPets);
+      localStorage.setItem(`vetcare_pets_${currentVet.id}`, JSON.stringify(defaultPets));
+      return;
+    }
+
+    const storedTutors = localStorage.getItem(`vetcare_tutores_${currentVet.id}`);
+    const storedPets = localStorage.getItem(`vetcare_pets_${currentVet.id}`);
+    if (storedTutors) {
+      try {
+        setTutors(JSON.parse(storedTutors));
+      } catch {
+        setTutors([]);
+      }
+    } else {
+      setTutors([]);
+    }
+    if (storedPets) {
+      try {
+        setPets(JSON.parse(storedPets));
+      } catch {
+        setPets([]);
+      }
+    } else {
+      setPets([]);
+    }
+  }, [currentVet]);
 
   // Sync tutors and pets to localStorage whenever changed
   useEffect(() => {
@@ -228,7 +233,7 @@ export function VetProvider({ children }: { children: ReactNode }) {
   };
 
   const updateAppointment = (id: string, data: Partial<Appointment>) => {
-    setAppointments(appointments.map(a => (a.id === id ? { ...a, ...data } : a)));
+    setAppointments(prev => prev.map(a => (a.id === id ? { ...a, ...data } : a)));
   };
 
   const deleteAppointment = (id: string) => {
@@ -236,7 +241,7 @@ export function VetProvider({ children }: { children: ReactNode }) {
   };
 
   const updateAppointmentStatus = (id: string, status: Appointment['status']) => {
-    setAppointments(appointments.map(a => (a.id === id ? { ...a, status } : a)));
+    setAppointments(prev => prev.map(a => (a.id === id ? { ...a, status } : a)));
   };
 
   const addConsultation = (consultation: Consultation) => {

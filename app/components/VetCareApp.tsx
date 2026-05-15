@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Mail, Lock, Bell, LogOut, Calendar, Users, Dog, ClipboardList,
   Plus, Search, X, TrendingUp, CalendarX, User, CheckCircle,
@@ -8,6 +8,14 @@ import {
   Cat, Feather, Mouse, Turtle, MessageCircle, Check, X as XIcon
 } from 'lucide-react';
 import { useVet, Veterinarian, Tutor, Pet, Appointment, Consultation } from '../context/VetContext';
+import {
+  useDraft,
+  emptyDraftByKind,
+  type AppointmentDraft,
+  type PetDraft,
+  type ConsultationDraft,
+  type DraftKind,
+} from '../context/DraftContext';
 
 // Mock data for testing
 const MOCK_VETERINARIANS = [
@@ -172,8 +180,17 @@ const CalendarView: React.FC<CalendarViewProps> = ({ appointments, pets, onDelet
   );
 };
 
+const emptyAppointmentForm = (): AppointmentDraft => emptyDraftByKind('appointment');
+
 const VetCareApp: React.FC = () => {
-  const { currentVet, login, logout, tutors, addTutor, updateTutor, deleteTutor, pets, addPet, updatePet, deletePet, appointments, addAppointment, deleteAppointment, updateAppointmentStatus, consultations, addConsultation, updateConsultation, deleteConsultation } = useVet();
+  const { currentVet, login, logout, tutors, addTutor, updateTutor, deleteTutor, pets, addPet, updatePet, deletePet, appointments, addAppointment, updateAppointment, deleteAppointment, updateAppointmentStatus, consultations, addConsultation, updateConsultation, deleteConsultation } = useVet();
+  const { getDraft, salvarProgresso, limparRascunho, temRascunho } = useDraft();
+  const skipDraftSaveRef = useRef<Record<DraftKind, boolean>>({
+    appointment: false,
+    tutor: false,
+    pet: false,
+    consultation: false,
+  });
 
   const [screen, setScreen] = useState<'login' | 'register' | 'forgot' | 'dashboard'>('login');
   const [activeSection, setActiveSection] = useState('agenda');
@@ -225,6 +242,11 @@ const VetCareApp: React.FC = () => {
   const [forgotForm, setForgotForm] = useState({ email: '' });
   const [forgotSuccess, setForgotSuccess] = useState(false);
   const [tutorForm, setTutorForm] = useState({ name: '', email: '', phone: '' });
+  const [tutorPhoto, setTutorPhoto] = useState<string>('');
+  const [petPhoto, setPetPhoto] = useState<string>('');
+  const [appointmentForm, setAppointmentForm] = useState<AppointmentDraft>(emptyAppointmentForm());
+  const [petForm, setPetForm] = useState<PetDraft>(() => emptyDraftByKind('pet'));
+  const [consultationForm, setConsultationForm] = useState<ConsultationDraft>(() => emptyDraftByKind('consultation'));
 
   const showToast = (message: string) => {
     setToast({ message, show: true });
@@ -280,35 +302,135 @@ const VetCareApp: React.FC = () => {
   };
 
   // Modal Functions
-  const openModal = (type: string) => {
+  const openModal = (type: DraftKind, editId?: string | null) => {
+    const id = editId ?? null;
+
     if (type === 'tutor') {
-      if (editingTutorId) {
-        const tutor = currentVetTutors.find(t => t.id === editingTutorId);
-        if (tutor) {
-          setTutorForm({ name: tutor.name, email: tutor.email, phone: tutor.phone });
-        }
+      setEditingTutorId(id);
+      if (temRascunho('tutor', id)) {
+        const d = getDraft('tutor', id);
+        if (d) setTutorForm({ name: d.name, email: d.email, phone: d.phone });
+      } else if (id) {
+        const tutor = currentVetTutors.find((t) => t.id === id);
+        setTutorForm(
+          tutor ? { name: tutor.name, email: tutor.email, phone: tutor.phone } : { name: '', email: '', phone: '' }
+        );
+        setTutorPhoto(tutor?.photo ?? '');
       } else {
         setTutorForm({ name: '', email: '', phone: '' });
+        setTutorPhoto('');
+      }
+    } else if (type === 'pet') {
+      setEditingPetId(id);
+      if (temRascunho('pet', id)) {
+        const d = getDraft('pet', id);
+        if (d) setPetForm(d);
+      } else if (id) {
+        const p = currentVetPets.find((x) => x.id === id);
+        setPetForm(
+          p
+            ? {
+                tutorId: p.tutorId,
+                name: p.name,
+                species: p.species,
+                breed: p.breed ?? '',
+                age: p.age !== undefined && p.age !== null ? String(p.age) : '',
+                weight: p.weight !== undefined && p.weight !== null ? String(p.weight) : '',
+              }
+            : emptyDraftByKind('pet')
+        );
+        setPetPhoto(p?.photo ?? '');
+      } else {
+        setPetForm(emptyDraftByKind('pet'));
+        setPetPhoto('');
+      }
+    } else if (type === 'consultation') {
+      setEditingConsultationId(id);
+      if (temRascunho('consultation', id)) {
+        const d = getDraft('consultation', id);
+        if (d) setConsultationForm(d);
+      } else if (id) {
+        const c = currentVetConsultations.find((x) => x.id === id);
+        setConsultationForm(
+          c
+            ? {
+                petId: c.petId,
+                date: c.date,
+                time: c.time,
+                reason: c.reason,
+                diagnosis: c.diagnosis,
+                prescription: c.prescription,
+                notes: c.notes,
+              }
+            : emptyDraftByKind('consultation')
+        );
+      } else {
+        setConsultationForm(emptyDraftByKind('consultation'));
+      }
+    } else if (type === 'appointment') {
+      if (temRascunho('appointment', null)) {
+        const d = getDraft('appointment', null);
+        if (d) {
+          setAppointmentForm({
+            petId: d.petId ?? '',
+            date: d.date ?? '',
+            time: d.time ?? '',
+            reason: d.reason ?? '',
+          });
+        }
+      } else {
+        setAppointmentForm(emptyAppointmentForm());
       }
     }
+
     setIsModalOpen(type);
   };
 
   const closeModal = () => {
+    const kind = isModalOpen as DraftKind | null;
+    const tutorDraftId = editingTutorId;
+    const petDraftId = editingPetId;
+    const consultationDraftId = editingConsultationId;
+
+    if (kind === 'appointment' && !skipDraftSaveRef.current.appointment) {
+      const hasAny = Object.values(appointmentForm).some((v) => typeof v === 'string' && v.length > 0);
+      if (hasAny) salvarProgresso('appointment', appointmentForm, null);
+    } else if (kind === 'tutor' && !skipDraftSaveRef.current.tutor) {
+      const hasAny = Object.values(tutorForm).some((v) => typeof v === 'string' && v.length > 0);
+      if (hasAny) salvarProgresso('tutor', tutorForm, tutorDraftId);
+    } else if (kind === 'pet' && !skipDraftSaveRef.current.pet) {
+      const hasAny = Object.values(petForm).some((v) => typeof v === 'string' && v.length > 0);
+      if (hasAny) salvarProgresso('pet', petForm, petDraftId);
+    } else if (kind === 'consultation' && !skipDraftSaveRef.current.consultation) {
+      const hasAny = Object.values(consultationForm).some((v) => typeof v === 'string' && v.length > 0);
+      if (hasAny) salvarProgresso('consultation', consultationForm, consultationDraftId);
+    }
+
+    skipDraftSaveRef.current = {
+      appointment: false,
+      tutor: false,
+      pet: false,
+      consultation: false,
+    };
     setIsModalOpen(null);
     setEditingConsultationId(null);
     setEditingPetId(null);
     setEditingTutorId(null);
+    setTutorPhoto('');
+    setPetPhoto('');
   };
 
   // Form Handlers
   const handleAddTutor = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    skipDraftSaveRef.current.tutor = true;
+    limparRascunho('tutor', editingTutorId ?? null);
     if (editingTutorId) {
       updateTutor(editingTutorId, {
         name: tutorForm.name,
         email: tutorForm.email,
         phone: tutorForm.phone,
+        photo: tutorPhoto || undefined,
       });
       setNotifications([...notifications, { id: Date.now().toString(), message: `Tutor "${tutorForm.name}" atualizado com sucesso`, type: 'edicao' }]);
       setHasUnread(true);
@@ -320,6 +442,7 @@ const VetCareApp: React.FC = () => {
         name: tutorForm.name,
         email: tutorForm.email,
         phone: tutorForm.phone,
+        photo: tutorPhoto || undefined,
         createdAt: new Date(),
       };
       addTutor(newTutor);
@@ -330,20 +453,23 @@ const VetCareApp: React.FC = () => {
     closeModal();
     setEditingTutorId(null);
     setTutorForm({ name: '', email: '', phone: '' });
+    setTutorPhoto('');
   };
 
   const handleAddPet = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const formData = new FormData(e.currentTarget);
+    skipDraftSaveRef.current.pet = true;
+    limparRascunho('pet', editingPetId ?? null);
     const petData: Pet = {
       id: editingPetId || Date.now().toString(),
       vetId: currentVet?.id || '',
-      tutorId: formData.get('tutor_id') as string,
-      name: formData.get('pet_name') as string,
-      species: formData.get('pet_species') as string,
-      breed: formData.get('pet_breed') as string,
-      age: formData.get('pet_age') ? parseInt(formData.get('pet_age') as string) : undefined,
-      weight: formData.get('pet_weight') ? parseFloat(formData.get('pet_weight') as string) : undefined,
+      tutorId: petForm.tutorId,
+      name: petForm.name,
+      species: petForm.species,
+      breed: petForm.breed,
+      age: petForm.age ? parseInt(petForm.age, 10) : undefined,
+      weight: petForm.weight ? parseFloat(petForm.weight) : undefined,
+      photo: petPhoto || undefined,
       createdAt: new Date(),
     };
     if (editingPetId) {
@@ -355,46 +481,49 @@ const VetCareApp: React.FC = () => {
     }
     setHasUnread(true);
     showToast(editingPetId ? 'Pet atualizado com sucesso!' : 'Pet cadastrado com sucesso!');
+    setPetForm(emptyDraftByKind('pet'));
+    setPetPhoto('');
     closeModal();
     setEditingPetId(null);
-    e.currentTarget.reset();
   };
 
   const handleAddAppointment = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const formData = new FormData(e.currentTarget);
+    skipDraftSaveRef.current.appointment = true;
     const newAppointment: Appointment = {
       id: Date.now().toString(),
       vetId: currentVet?.id || '',
-      petId: formData.get('pet_name') as string,
-      date: formData.get('date') as string,
-      time: formData.get('time') as string,
-      reason: formData.get('reason') as string,
+      petId: appointmentForm.petId,
+      date: appointmentForm.date,
+      time: appointmentForm.time,
+      reason: appointmentForm.reason,
       status: 'agendado',
-      confirmed: true,
+      confirmed: false,
       createdAt: new Date(),
     };
     addAppointment(newAppointment);
     setNotifications([...notifications, { id: Date.now().toString(), message: `Consulta agendada para ${newAppointment.date}`, type: 'cadastro' }]);
     setHasUnread(true);
     showToast('Consulta agendada com sucesso!');
+    limparRascunho('appointment', null);
+    setAppointmentForm(emptyAppointmentForm());
     closeModal();
-    e.currentTarget.reset();
   };
 
   const handleAddConsultation = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const formData = new FormData(e.currentTarget);
+    skipDraftSaveRef.current.consultation = true;
+    limparRascunho('consultation', editingConsultationId ?? null);
 
     if (editingConsultationId) {
       updateConsultation(editingConsultationId, {
-        petId: formData.get('pet_name') as string,
-        date: formData.get('date') as string,
-        time: formData.get('time') as string,
-        reason: formData.get('reason') as string,
-        diagnosis: formData.get('diagnosis') as string,
-        prescription: formData.get('prescription') as string,
-        notes: formData.get('notes') as string,
+        petId: consultationForm.petId,
+        date: consultationForm.date,
+        time: consultationForm.time,
+        reason: consultationForm.reason,
+        diagnosis: consultationForm.diagnosis,
+        prescription: consultationForm.prescription,
+        notes: consultationForm.notes,
       });
       setNotifications([...notifications, { id: Date.now().toString(), message: `Consulta atualizada com sucesso`, type: 'edicao' }]);
       setHasUnread(true);
@@ -403,13 +532,13 @@ const VetCareApp: React.FC = () => {
       const newConsultation: Consultation = {
         id: Date.now().toString(),
         vetId: currentVet?.id || '',
-        petId: formData.get('pet_name') as string,
-        date: formData.get('date') as string,
-        time: formData.get('time') as string,
-        reason: formData.get('reason') as string,
-        diagnosis: formData.get('diagnosis') as string,
-        prescription: formData.get('prescription') as string,
-        notes: formData.get('notes') as string,
+        petId: consultationForm.petId,
+        date: consultationForm.date,
+        time: consultationForm.time,
+        reason: consultationForm.reason,
+        diagnosis: consultationForm.diagnosis,
+        prescription: consultationForm.prescription,
+        notes: consultationForm.notes,
         createdAt: new Date(),
       };
       addConsultation(newConsultation);
@@ -418,8 +547,8 @@ const VetCareApp: React.FC = () => {
       showToast('Consulta registrada com sucesso!');
       setPrescriptionSentModal(true);
     }
+    setConsultationForm(emptyDraftByKind('consultation'));
     closeModal();
-    e.currentTarget.reset();
   };
 
   // Delete handlers with notifications
@@ -751,7 +880,7 @@ const VetCareApp: React.FC = () => {
                     <Bell className="w-5 h-5 text-primary" />
                     <h4 className="text-sm font-semibold text-slate-700">Notificações</h4>
                   </div>
-                  <button onClick={() => { setNotifications([]); setHasUnread(false); }} className="p-1 hover:bg-slate-100 rounded-full">
+                  <button onClick={() => { setNotifications([]); setHasUnread(false); setNotificationsOpen(false); }} className="p-1 hover:bg-slate-100 rounded-full">
                     <X className="w-4 h-4 text-slate-400" />
                   </button>
                 </div>
@@ -862,6 +991,7 @@ const VetCareApp: React.FC = () => {
                     </button>
                   </div>
                   <button
+                    type="button"
                     onClick={() => openModal('appointment')}
                     className="flex items-center gap-2 px-6 py-3.5 bg-gradient-to-r from-primary to-secondary hover:shadow-xl hover:shadow-primary/40 text-white font-bold rounded-xl transition-all shadow-lg"
                   >
@@ -966,6 +1096,7 @@ const VetCareApp: React.FC = () => {
                   <p className="text-slate-400 mt-2">Gerenciar tutores e contatos</p>
                 </div>
                 <button
+                  type="button"
                   onClick={() => openModal('tutor')}
                   className="flex items-center gap-2 px-6 py-3.5 bg-gradient-to-r from-primary to-secondary hover:shadow-xl text-white font-bold rounded-xl transition-all shadow-lg"
                 >
@@ -991,32 +1122,32 @@ const VetCareApp: React.FC = () => {
                   <p className="text-slate-400">Nenhum tutor cadastrado</p>
                 </div>
               ) : (
-                <div className="space-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {currentVetTutors
                     .filter(t => t.name.toLowerCase().includes(tutorSearch.toLowerCase()))
                     .map((tutor) => (
-                      <div key={tutor.id} className="modern-card rounded-xl p-4 border border-slate-200 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <User className="w-6 h-6 text-primary" />
-                          <div>
-                            <h4 className="font-semibold">{tutor.name}</h4>
-                            <p className="text-xs text-slate-500">{tutor.email} • {tutor.phone}</p>
+                      <div key={tutor.id} className="modern-card rounded-xl p-4 border border-slate-200">
+                        <div className="flex items-start justify-between mb-3">
+                          {tutor.photo
+                            ? <img src={tutor.photo} alt={tutor.name} className="w-8 h-8 rounded-full object-cover" />
+                            : <User className="w-6 h-6 text-primary" />
+                          }
+                          <div className="flex gap-2">
+                            <button
+                              type="button"
+                              onClick={() => openModal('tutor', tutor.id)}
+                              className="p-1 hover:bg-blue-50 rounded"
+                            >
+                              <Edit2 className="w-4 h-4 text-slate-400 hover:text-blue-500" />
+                            </button>
+                            <button onClick={() => handleDeleteTutor(tutor.id)} className="p-1 hover:bg-red-50 rounded">
+                              <Trash2 className="w-4 h-4 text-slate-400 hover:text-red-500" />
+                            </button>
                           </div>
                         </div>
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => {
-                              setEditingTutorId(tutor.id);
-                              openModal('tutor');
-                            }}
-                            className="p-2 hover:bg-blue-50 rounded-lg"
-                          >
-                            <Edit2 className="w-4 h-4 text-slate-400 hover:text-blue-500" />
-                          </button>
-                          <button onClick={() => handleDeleteTutor(tutor.id)} className="p-2 hover:bg-red-50 rounded-lg">
-                            <Trash2 className="w-4 h-4 text-slate-400 hover:text-red-500" />
-                          </button>
-                        </div>
+                        <h4 className="font-semibold mb-1">{tutor.name}</h4>
+                        <p className="text-xs text-slate-500">{tutor.email}</p>
+                        <p className="text-xs text-slate-500">{tutor.phone}</p>
                       </div>
                     ))}
                 </div>
@@ -1029,9 +1160,10 @@ const VetCareApp: React.FC = () => {
               <div className="flex items-center justify-between mb-8">
                 <div>
                   <h2 className="text-3xl font-bold text-primary">Cadastro de Pets</h2>
-                  <p className="text-slate-400 mt-2">Pacientes cadastrados</p>
+                  <p className="text-slate-400 mt-2">Pets cadastrados</p>
                 </div>
                 <button
+                  type="button"
                   onClick={() => openModal('pet')}
                   className="flex items-center gap-2 px-6 py-3.5 bg-gradient-to-r from-primary to-secondary hover:shadow-xl text-white font-bold rounded-xl transition-all shadow-lg"
                 >
@@ -1067,7 +1199,7 @@ const VetCareApp: React.FC = () => {
                           <div className="flex items-start justify-between mb-3">
                             {getSpeciesIcon(pet.species)}
                             <div className="flex gap-2">
-                              <button onClick={() => { setEditingPetId(pet.id); openModal('pet'); }} className="p-1 hover:bg-blue-50 rounded">
+                              <button type="button" onClick={() => openModal('pet', pet.id)} className="p-1 hover:bg-blue-50 rounded">
                                 <Edit2 className="w-4 h-4 text-slate-400 hover:text-blue-500" />
                               </button>
                               <button onClick={() => handleDeletePet(pet.id)} className="p-1 hover:bg-red-50 rounded">
@@ -1091,9 +1223,10 @@ const VetCareApp: React.FC = () => {
               <div className="flex items-center justify-between mb-8">
                 <div>
                   <h2 className="text-3xl font-bold text-primary">Prontuarios</h2>
-                  <p className="text-slate-400 mt-2">Historico de consultas</p>
+                  <p className="text-slate-400 mt-2">Historico de prontuários</p>
                 </div>
                 <button
+                  type="button"
                   onClick={() => openModal('consultation')}
                   className="flex items-center gap-2 px-6 py-3.5 bg-gradient-to-r from-primary to-secondary hover:shadow-xl text-white font-bold rounded-xl transition-all shadow-lg"
                 >
@@ -1138,7 +1271,7 @@ const VetCareApp: React.FC = () => {
                               <p className="text-xs text-slate-500">{cons.date} - {cons.time}</p>
                             </div>
                             <div className="flex gap-2">
-                              <button onClick={() => { setEditingConsultationId(cons.id); openModal('consultation'); }} className="p-2 hover:bg-blue-50 rounded-lg">
+                              <button type="button" onClick={() => openModal('consultation', cons.id)} className="p-2 hover:bg-blue-50 rounded-lg">
                                 <Edit2 className="w-4 h-4 text-slate-400 hover:text-blue-500" />
                               </button>
                               <button onClick={() => handleDeleteConsultation(cons.id)} className="p-2 hover:bg-red-50 rounded-lg">
@@ -1162,7 +1295,7 @@ const VetCareApp: React.FC = () => {
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           {isModalOpen === 'tutor' && (
-            <div className="bg-white rounded-3xl w-full max-w-lg max-h-[90vh] overflow-y-auto border border-slate-200 shadow-2xl">
+            <div className="bg-white rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-slate-200 shadow-2xl">
               <div className="p-6 border-b flex items-center justify-between sticky top-0 bg-white">
                 <div className="flex items-center gap-3">
                   <Users className="w-6 h-6 text-primary" />
@@ -1173,20 +1306,82 @@ const VetCareApp: React.FC = () => {
                 </button>
               </div>
               <form onSubmit={handleAddTutor} className="p-6 space-y-5">
+                {temRascunho('tutor', editingTutorId) && (
+                  <div className="p-3 bg-amber-50 text-amber-800 rounded-xl text-sm flex items-center justify-between gap-3 border border-amber-200">
+                    <span>Rascunho recuperado.</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        limparRascunho('tutor', editingTutorId);
+                        if (editingTutorId) {
+                          const tutor = currentVetTutors.find((t) => t.id === editingTutorId);
+                          setTutorForm(
+                            tutor
+                              ? { name: tutor.name, email: tutor.email, phone: tutor.phone }
+                              : { name: '', email: '', phone: '' }
+                          );
+                        } else {
+                          setTutorForm({ name: '', email: '', phone: '' });
+                        }
+                      }}
+                      className="shrink-0 px-3 py-1.5 font-semibold rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-900"
+                    >
+                      Descartar
+                    </button>
+                  </div>
+                )}
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">Foto do Tutor</label>
+                  <div className="flex items-center gap-4">
+                    <div className="relative w-20 h-20 rounded-full border-2 border-dashed border-slate-300 flex items-center justify-center overflow-hidden bg-slate-50 hover:border-primary transition-colors cursor-pointer"
+                      onClick={() => document.getElementById('tutor-photo-input')?.click()}>
+                      {tutorPhoto
+                        ? <img src={tutorPhoto} alt="Foto do tutor" className="w-full h-full object-cover" />
+                        : <div className="flex flex-col items-center gap-1 text-slate-400">
+                            <User className="w-7 h-7" />
+                            <span className="text-xs">Foto</span>
+                          </div>
+                      }
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <button type="button" onClick={() => document.getElementById('tutor-photo-input')?.click()}
+                        className="px-3 py-2 text-sm font-medium rounded-xl border border-primary text-primary hover:bg-primary/10 transition-all">
+                        {tutorPhoto ? 'Alterar foto' : 'Enviar foto'}
+                      </button>
+                      {tutorPhoto && (
+                        <button type="button" onClick={() => setTutorPhoto('')}
+                          className="px-3 py-2 text-sm font-medium rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-100 transition-all">
+                          Remover
+                        </button>
+                      )}
+                    </div>
+                    <input id="tutor-photo-input" type="file" accept="image/*" className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        const reader = new FileReader();
+                        reader.onload = (ev) => setTutorPhoto(ev.target?.result as string);
+                        reader.readAsDataURL(file);
+                        e.target.value = '';
+                      }} />
+                  </div>
+                </div>
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">Nome Completo</label>
                   <input type="text" value={tutorForm.name} onChange={(e) => setTutorForm({ ...tutorForm, name: e.target.value })} placeholder="Nome Completo" required className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium" />
                 </div>
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">Email</label>
-                  <input type="email" value={tutorForm.email} onChange={(e) => setTutorForm({ ...tutorForm, email: e.target.value })} placeholder="Email" required className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium" />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">Telefone</label>
-                  <input type="tel" value={tutorForm.phone} onChange={(e) => setTutorForm({ ...tutorForm, phone: formatPhone(e.target.value) })} placeholder="(XX)XXXXX-XXXX" required className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium" />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">Email</label>
+                    <input type="email" value={tutorForm.email} onChange={(e) => setTutorForm({ ...tutorForm, email: e.target.value })} placeholder="Email" required className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">Telefone</label>
+                    <input type="tel" value={tutorForm.phone} onChange={(e) => setTutorForm({ ...tutorForm, phone: formatPhone(e.target.value) })} placeholder="(XX)XXXXX-XXXX" required className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium" />
+                  </div>
                 </div>
                 <div className="flex gap-3 pt-4">
-                  <button onClick={closeModal} className="flex-1 px-4 py-3 border-2 text-slate-700 font-bold rounded-xl hover:bg-slate-100">
+                  <button type="button" onClick={closeModal} className="flex-1 px-4 py-3 border-2 text-slate-700 font-bold rounded-xl hover:bg-slate-100">
                     Cancelar
                   </button>
                   <button type="submit" className="flex-1 px-4 py-3 bg-gradient-to-r from-primary to-secondary text-white font-bold rounded-xl">
@@ -1198,7 +1393,7 @@ const VetCareApp: React.FC = () => {
           )}
 
           {isModalOpen === 'pet' && (
-            <div className="bg-white rounded-3xl w-full max-w-lg max-h-[90vh] overflow-y-auto border border-slate-200 shadow-2xl">
+            <div className="bg-white rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-slate-200 shadow-2xl">
               <div className="p-6 border-b flex items-center justify-between sticky top-0 bg-white">
                 <div className="flex items-center gap-3">
                   <Dog className="w-6 h-6 text-primary" />
@@ -1209,46 +1404,149 @@ const VetCareApp: React.FC = () => {
                 </button>
               </div>
               <form onSubmit={handleAddPet} className="p-6 space-y-5">
+                {temRascunho('pet', editingPetId) && (
+                  <div className="p-3 bg-amber-50 text-amber-800 rounded-xl text-sm flex items-center justify-between gap-3 border border-amber-200">
+                    <span>Rascunho recuperado.</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        limparRascunho('pet', editingPetId);
+                        if (editingPetId && petToEdit) {
+                          setPetForm({
+                            tutorId: petToEdit.tutorId,
+                            name: petToEdit.name,
+                            species: petToEdit.species,
+                            breed: petToEdit.breed ?? '',
+                            age: petToEdit.age !== undefined && petToEdit.age !== null ? String(petToEdit.age) : '',
+                            weight: petToEdit.weight !== undefined && petToEdit.weight !== null ? String(petToEdit.weight) : '',
+                          });
+                        } else {
+                          setPetForm(emptyDraftByKind('pet'));
+                        }
+                      }}
+                      className="shrink-0 px-3 py-1.5 font-semibold rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-900"
+                    >
+                      Descartar
+                    </button>
+                  </div>
+                )}
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">Tutor</label>
-                  <select name="tutor_id" required className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium">
-                    <option value="">Selecione o tutor</option>
-                    {currentVetTutors.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-                  </select>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">Foto do Pet</label>
+                  <div className="flex items-center gap-4">
+                    <div className="relative w-20 h-20 rounded-full border-2 border-dashed border-slate-300 flex items-center justify-center overflow-hidden bg-slate-50 hover:border-primary transition-colors cursor-pointer"
+                      onClick={() => document.getElementById('pet-photo-input')?.click()}>
+                      {petPhoto
+                        ? <img src={petPhoto} alt="Foto do pet" className="w-full h-full object-cover" />
+                        : <div className="flex flex-col items-center gap-1 text-slate-400">
+                            <Dog className="w-7 h-7" />
+                            <span className="text-xs">Foto</span>
+                          </div>
+                      }
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <button type="button" onClick={() => document.getElementById('pet-photo-input')?.click()}
+                        className="px-3 py-2 text-sm font-medium rounded-xl border border-primary text-primary hover:bg-primary/10 transition-all">
+                        {petPhoto ? 'Alterar foto' : 'Enviar foto'}
+                      </button>
+                      {petPhoto && (
+                        <button type="button" onClick={() => setPetPhoto('')}
+                          className="px-3 py-2 text-sm font-medium rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-100 transition-all">
+                          Remover
+                        </button>
+                      )}
+                    </div>
+                    <input id="pet-photo-input" type="file" accept="image/*" className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        const reader = new FileReader();
+                        reader.onload = (ev) => setPetPhoto(ev.target?.result as string);
+                        reader.readAsDataURL(file);
+                        e.target.value = '';
+                      }} />
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">Nome do Pet</label>
-                  <input type="text" name="pet_name" placeholder="Nome do Pet" required className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium" />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">Tutor</label>
+                    <select
+                      value={petForm.tutorId}
+                      onChange={(e) => setPetForm({ ...petForm, tutorId: e.target.value })}
+                      required
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium"
+                    >
+                      <option value="">Selecione o tutor</option>
+                      {currentVetTutors.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">Nome do Pet</label>
+                    <input
+                      type="text"
+                      value={petForm.name}
+                      onChange={(e) => setPetForm({ ...petForm, name: e.target.value })}
+                      placeholder="Nome do Pet"
+                      required
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium"
+                    />
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">Espécie</label>
-                  <select name="pet_species" required defaultValue={petToEdit?.species || ''} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium">
-                    <option value="">Selecione espécie</option>
-                    <option value="Cao">Cão</option>
-                    <option value="Gato">Gato</option>
-                    <option value="Ave">Ave</option>
-                    <option value="Reptil">Réptil</option>
-                    <option value="Roedor">Roedor</option>
-                    <option value="Outro">Outro</option>
-                  </select>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">Raça</label>
+                    <input
+                      type="text"
+                      value={petForm.breed}
+                      onChange={(e) => setPetForm({ ...petForm, breed: e.target.value })}
+                      placeholder="Raça"
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">Espécie</label>
+                    <select
+                      value={petForm.species}
+                      onChange={(e) => setPetForm({ ...petForm, species: e.target.value })}
+                      required
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium"
+                    >
+                      <option value="">Selecione espécie</option>
+                      <option value="Cao">Cão</option>
+                      <option value="Gato">Gato</option>
+                      <option value="Ave">Ave</option>
+                      <option value="Reptil">Réptil</option>
+                      <option value="Roedor">Roedor</option>
+                      <option value="Outro">Outro</option>
+                    </select>
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">Raça</label>
-                  <input type="text" name="pet_breed" placeholder="Raça" defaultValue={petToEdit?.breed}
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium" />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">Idade</label>
-                  <input type="number" min="0" name="pet_age" placeholder="Idade (anos)" defaultValue={petToEdit?.age}
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium" />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">Peso (kg)</label>
-                  <input type="number" step="0.1" min="0" name="pet_weight" placeholder="Peso em kg" defaultValue={petToEdit?.weight}
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium" />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">Idade (anos)</label>
+                    <input
+                      type="number"
+                      min={0}
+                      value={petForm.age}
+                      onChange={(e) => setPetForm({ ...petForm, age: e.target.value })}
+                      placeholder="Idade"
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">Peso (kg)</label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      min={0}
+                      value={petForm.weight}
+                      onChange={(e) => setPetForm({ ...petForm, weight: e.target.value })}
+                      placeholder="Peso em kg"
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium"
+                    />
+                  </div>
                 </div>
                 <div className="flex gap-3 pt-4">
-                  <button onClick={closeModal} className="flex-1 px-4 py-3 border-2 text-slate-700 font-bold rounded-xl hover:bg-slate-100">
+                  <button type="button" onClick={closeModal} className="flex-1 px-4 py-3 border-2 text-slate-700 font-bold rounded-xl hover:bg-slate-100">
                     Cancelar
                   </button>
                   <button type="submit" className="flex-1 px-4 py-3 bg-gradient-to-r from-primary to-secondary text-white font-bold rounded-xl">
@@ -1271,27 +1569,66 @@ const VetCareApp: React.FC = () => {
                 </button>
               </div>
               <form onSubmit={handleAddAppointment} className="p-6 space-y-5">
+                {temRascunho('appointment', null) && (
+                  <div className="p-3 bg-amber-50 text-amber-800 rounded-xl text-sm flex items-center justify-between gap-3 border border-amber-200">
+                    <span>Rascunho recuperado.</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        limparRascunho('appointment', null);
+                        setAppointmentForm(emptyAppointmentForm());
+                      }}
+                      className="shrink-0 px-3 py-1.5 font-semibold rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-900"
+                    >
+                      Descartar
+                    </button>
+                  </div>
+                )}
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">Pet</label>
-                  <select name="pet_name" required className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium">
+                  <select
+                    value={appointmentForm.petId}
+                    onChange={(e) => setAppointmentForm({ ...appointmentForm, petId: e.target.value })}
+                    required
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium"
+                  >
                     <option value="">Selecione o pet</option>
                     {currentVetPets.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                   </select>
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">Data</label>
-                  <input type="date" name="date" required className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium" />
+                  <input
+                    type="date"
+                    value={appointmentForm.date}
+                    onChange={(e) => setAppointmentForm({ ...appointmentForm, date: e.target.value })}
+                    required
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium"
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">Hora</label>
-                  <input type="time" name="time" required className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium" />
+                  <input
+                    type="time"
+                    value={appointmentForm.time}
+                    onChange={(e) => setAppointmentForm({ ...appointmentForm, time: e.target.value })}
+                    required
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium"
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">Motivo da Consulta</label>
-                  <textarea name="reason" rows={3} placeholder="Descreva o motivo da consulta" required className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium resize-none"></textarea>
+                  <textarea
+                    value={appointmentForm.reason}
+                    onChange={(e) => setAppointmentForm({ ...appointmentForm, reason: e.target.value })}
+                    rows={3}
+                    placeholder="Descreva o motivo da consulta"
+                    required
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium resize-none"
+                  />
                 </div>
                 <div className="flex gap-3 pt-4">
-                  <button onClick={closeModal} className="flex-1 px-4 py-3 border-2 text-slate-700 font-bold rounded-xl hover:bg-slate-100">
+                  <button type="button" onClick={closeModal} className="flex-1 px-4 py-3 border-2 text-slate-700 font-bold rounded-xl hover:bg-slate-100">
                     Cancelar
                   </button>
                   <button type="submit" className="flex-1 px-4 py-3 bg-gradient-to-r from-primary to-secondary text-white font-bold rounded-xl">
@@ -1314,42 +1651,111 @@ const VetCareApp: React.FC = () => {
                 </button>
               </div>
               <form onSubmit={handleAddConsultation} className="p-6 space-y-5">
+                {temRascunho('consultation', editingConsultationId) && (
+                  <div className="p-3 bg-amber-50 text-amber-800 rounded-xl text-sm flex items-center justify-between gap-3 border border-amber-200">
+                    <span>Rascunho recuperado.</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        limparRascunho('consultation', editingConsultationId);
+                        if (editingConsultationId && consultationToEdit) {
+                          setConsultationForm({
+                            petId: consultationToEdit.petId,
+                            date: consultationToEdit.date,
+                            time: consultationToEdit.time,
+                            reason: consultationToEdit.reason,
+                            diagnosis: consultationToEdit.diagnosis,
+                            prescription: consultationToEdit.prescription,
+                            notes: consultationToEdit.notes,
+                          });
+                        } else {
+                          setConsultationForm(emptyDraftByKind('consultation'));
+                        }
+                      }}
+                      className="shrink-0 px-3 py-1.5 font-semibold rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-900"
+                    >
+                      Descartar
+                    </button>
+                  </div>
+                )}
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">Pet</label>
-                  <select name="pet_name" required className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium" defaultValue={consultationToEdit?.petId || ""}>
+                  <select
+                    value={consultationForm.petId}
+                    onChange={(e) => setConsultationForm({ ...consultationForm, petId: e.target.value })}
+                    required
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium"
+                  >
                     <option value="">Selecione o pet</option>
                     {currentVetPets.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                   </select>
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">Data</label>
-                  <input type="date" name="date" required className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium" defaultValue={consultationToEdit?.date || ""} />
+                  <input
+                    type="date"
+                    value={consultationForm.date}
+                    onChange={(e) => setConsultationForm({ ...consultationForm, date: e.target.value })}
+                    required
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium"
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">Hora</label>
-                  <input type="time" name="time" required className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium" defaultValue={consultationToEdit?.time || ""} />
+                  <input
+                    type="time"
+                    value={consultationForm.time}
+                    onChange={(e) => setConsultationForm({ ...consultationForm, time: e.target.value })}
+                    required
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium"
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">Motivo da Consulta</label>
-                  <textarea name="reason" rows={2} placeholder="Descreva o motivo da consulta" required className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium resize-none" defaultValue={consultationToEdit?.reason || ""}></textarea>
+                  <textarea
+                    value={consultationForm.reason}
+                    onChange={(e) => setConsultationForm({ ...consultationForm, reason: e.target.value })}
+                    rows={2}
+                    placeholder="Descreva o motivo da consulta"
+                    required
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium resize-none"
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">Diagnóstico</label>
-                  <textarea name="diagnosis" rows={3} placeholder="Descreva o diagnóstico" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium resize-none" defaultValue={consultationToEdit?.diagnosis || ""}></textarea>
+                  <textarea
+                    value={consultationForm.diagnosis}
+                    onChange={(e) => setConsultationForm({ ...consultationForm, diagnosis: e.target.value })}
+                    rows={3}
+                    placeholder="Descreva o diagnóstico"
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium resize-none"
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">Prescrição / Recomendações</label>
-                  <textarea name="prescription" rows={3} placeholder="Medicamentos, dosagem, recomendações..." className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium resize-none" defaultValue={consultationToEdit?.prescription || ""}></textarea>
+                  <textarea
+                    value={consultationForm.prescription}
+                    onChange={(e) => setConsultationForm({ ...consultationForm, prescription: e.target.value })}
+                    rows={3}
+                    placeholder="Medicamentos, dosagem, recomendações..."
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium resize-none"
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-2">Observações Gerais</label>
-                  <textarea name="notes" rows={2} placeholder="Observações adicionais" className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium resize-none" defaultValue={consultationToEdit?.notes || ""}></textarea>
+                  <textarea
+                    value={consultationForm.notes}
+                    onChange={(e) => setConsultationForm({ ...consultationForm, notes: e.target.value })}
+                    rows={2}
+                    placeholder="Observações adicionais"
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium resize-none"
+                  />
                 </div>
                 <div className="p-3 bg-blue-50 text-blue-600 rounded text-sm">
                   Este prontuário será enviado por email ao tutor.
                 </div>
                 <div className="flex gap-3 pt-4">
-                  <button onClick={closeModal} className="flex-1 px-4 py-3 border-2 text-slate-700 font-bold rounded-xl hover:bg-slate-100">
+                  <button type="button" onClick={closeModal} className="flex-1 px-4 py-3 border-2 text-slate-700 font-bold rounded-xl hover:bg-slate-100">
                     Cancelar
                   </button>
                   <button type="submit" className="flex-1 px-4 py-3 bg-gradient-to-r from-primary to-secondary text-white font-bold rounded-xl">
@@ -1452,11 +1858,7 @@ const VetCareApp: React.FC = () => {
                     </span>
                     <button
                       onClick={() => {
-                        updateAppointmentStatus(
-                          appointment.id,
-                          appointment.confirmed ? 'agendado' : 'cancelado'
-                        );
-                        setAppointmentDetailsModal(null);
+                        updateAppointment(appointment.id, { confirmed: !appointment.confirmed });
                         showToast(`Consulta ${!appointment.confirmed ? 'confirmada' : 'marcada como pendente'}!`);
                       }}
                       className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${
