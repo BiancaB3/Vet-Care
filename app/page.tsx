@@ -18,18 +18,7 @@ export default function LandingPage() {
       <header className="fixed top-0 left-0 right-0 z-40 bg-white/80 backdrop-blur-xl border-b border-slate-200/50 px-6 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 gradient-primary rounded-2xl flex items-center justify-center shadow-lg">
-               <svg className="w-6 h-6" viewBox="0 0 140 160" fill="none" xmlns="http://www.w3.org/2000/svg">
-                 <path d="M70 15 C70 15, 25 35, 25 80 C25 125, 70 155, 70 155 C70 155, 115 125, 115 80 C115 35, 70 15, 70 15 Z" fill="#fefcf4" stroke="#e8e3d8" strokeWidth="1.5" />
-                 <rect width="140" height="160" fill="#a2d4b8" opacity="0.7" />
-                 <ellipse cx="70" cy="35" rx="20" ry="15" fill="white" opacity="0.25" />
-               </svg>
-              <svg className="w-6 h-6" viewBox="0 0 140 160" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M70 15 C70 15, 25 35, 25 80 C25 125, 70 155, 70 155 C70 155, 115 125, 115 80 C115 35, 70 15, 70 15 Z" fill="#fefcf4" stroke="#e8e3d8" strokeWidth="1.5" />
-                <rect width="140" height="160" fill="#a2d4b8" opacity="0.7" />
-                <ellipse cx="70" cy="35" rx="20" ry="15" fill="white" opacity="0.25" />
-              </svg>
-            </div>
+            <img src="/LOGOVETCARE.png" alt="VetCare" className="w-10 h-10 object-cover rounded-full mix-blend-multiply" />
             <h1 className="text-2xl font-bold" style={{ color: '#a2d4b8' }}>VetCare</h1>
           </div>
           <div className="flex items-center gap-2">

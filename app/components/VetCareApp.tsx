@@ -642,8 +642,8 @@ const VetCareApp: React.FC = () => {
 
         <div className="w-full max-w-md animate-fade-in relative z-10">
           <div className="text-center mb-10">
-            <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-primary to-secondary rounded-3xl mb-6 shadow-lg animate-float animate-pulse-glow">
-              <div className="text-white text-4xl font-bold">V</div>
+            <div className="flex justify-center mb-6">
+              <img src="/LOGOVETCARE.png" alt="VetCare" className="w-24 h-24 object-cover rounded-full animate-float animate-pulse-glow mix-blend-multiply" />
             </div>
             <h1 className="text-4xl font-bold mb-2 text-primary">VetCare</h1>
             <p className="text-lg text-primary">Sistema de Gestao Veterinaria</p>
@@ -848,9 +848,7 @@ const VetCareApp: React.FC = () => {
     <div className="h-screen w-full flex flex-col bg-background overflow-hidden">
       <header className="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between sticky top-0 z-40 backdrop-blur-sm shadow-sm">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-gradient-to-br from-primary to-secondary rounded-2xl flex items-center justify-center shadow-lg">
-            <span className="text-white font-bold text-lg">V</span>
-          </div>
+          <img src="/LOGOVETCARE.png" alt="VetCare" className="w-12 h-12 object-cover rounded-full mix-blend-multiply" />
           <div>
             <h1 className="text-2xl font-bold text-primary">VetCare</h1>
             <p className="text-xs text-primary font-bold">Dashboard Profissional</p>

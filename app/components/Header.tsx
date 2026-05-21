@@ -11,7 +11,7 @@ export default function Header() {
       <div className="max-w-7xl mx-auto px-4 flex h-16 items-center justify-between">
         <div className="flex items-center gap-4">
           <Link href="/home" className="flex items-center gap-2">
-            <img src="/LOGOVETCARE.png" alt="VetCare" width={36} height={36} className="h-9 w-9 object-contain" />
+            <img src="/LOGOVETCARE.png" alt="VetCare" width={36} height={36} className="h-9 w-9 object-cover rounded-full mix-blend-multiply" />
             <span className="text-lg font-bold text-white">VetCare</span>
           </Link>
           <nav className="hidden sm:flex items-center gap-1">
