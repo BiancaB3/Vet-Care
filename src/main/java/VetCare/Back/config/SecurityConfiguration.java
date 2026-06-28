@@ -21,13 +21,17 @@ public class SecurityConfiguration {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http.cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
+                .httpBasic(Customizer.withDefaults())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/auth/login",
                                 "/swagger-ui/**",
+                                "/swagger-ui.html",
                                 "/webjars/**",
                                 "/swagger-resources/**",
-                                "/v3/api-docs/**"
+                                "/v2/api-docs/**",
+                                "/v3/api-docs/**",
+                                "/v3/api-docs"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
