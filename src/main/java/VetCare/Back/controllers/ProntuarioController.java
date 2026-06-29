@@ -15,6 +15,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/prontuarios")
+@CrossOrigin(origins = "*", maxAge = 3600)
 @Tag(name = "Prontuarios controller", description = "Controladora responsável por gerenciar os prontuários!")
 public class ProntuarioController {
 

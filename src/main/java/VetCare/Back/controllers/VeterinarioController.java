@@ -11,6 +11,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/veterinarios")
+@CrossOrigin(origins = "*", maxAge = 3600)
 @Tag(name = "Veterinarios controller", description = "Controladora responsável por gerenciar os veterinários!")
 public class VeterinarioController {
 

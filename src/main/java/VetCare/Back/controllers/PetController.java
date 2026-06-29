@@ -12,6 +12,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/pets")
+@CrossOrigin(origins = "*", maxAge = 3600)
 @Tag(name = "Pets controller", description = "Controladora responsável por gerenciar os pets!")
 public class PetController {
 

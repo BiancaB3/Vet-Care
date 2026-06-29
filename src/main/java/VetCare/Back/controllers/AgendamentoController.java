@@ -14,6 +14,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/agendamentos")
+@CrossOrigin(origins = "*", maxAge = 3600)
 @Tag(name = "Agendamentos controller", description = "Controladora responsável por gerenciar os agendamentos!")
 public class AgendamentoController {
 

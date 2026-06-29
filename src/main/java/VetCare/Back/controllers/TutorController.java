@@ -11,6 +11,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/tutores")
+@CrossOrigin(origins = "*", maxAge = 3600)
 @Tag(name = "Tutores controller", description = "Controladora responsável por gerenciar os tutores!")
 public class TutorController {
 
