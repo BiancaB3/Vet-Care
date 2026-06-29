@@ -3,16 +3,13 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane prefHeight="400.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.auladesk.LoginController">
+<AnchorPane prefHeight="320.0" prefWidth="480.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.vetcaredesk.LoginController">
    <children>
-      <Label layoutX="64.0" layoutY="46.0" prefHeight="17.0" prefWidth="48.0" text="Login" />
-
-      <TextField fx:id="txtLogin" layoutX="151.0" layoutY="46.0" prefHeight="25.0" prefWidth="215.0" />
-
-      <Label layoutX="64.0" layoutY="88.0" prefHeight="17.0" prefWidth="48.0" text="Senha" />
-
-      <PasswordField fx:id="txtSenha" layoutX="151.0" layoutY="84.0" prefHeight="25.0" prefWidth="215.0" />
-
-      <Button layoutX="151.0" layoutY="125.0" mnemonicParsing="false" onAction="#onLoginButtonClick" prefHeight="25.0" prefWidth="215.0" text="Login" />
+      <Label layoutX="55.0" layoutY="42.0" style="-fx-font-size: 20px; -fx-font-weight: bold;" text="VetCare Desk" />
+      <Label layoutX="55.0" layoutY="98.0" text="Email" />
+      <TextField fx:id="txtEmail" layoutX="55.0" layoutY="118.0" prefHeight="30.0" prefWidth="370.0" promptText="bianca@vetcare.com" />
+      <Label layoutX="55.0" layoutY="164.0" text="Senha" />
+      <PasswordField fx:id="txtSenha" layoutX="55.0" layoutY="184.0" prefHeight="30.0" prefWidth="370.0" promptText="Informe sua senha" />
+      <Button layoutX="55.0" layoutY="236.0" mnemonicParsing="false" onAction="#onLoginButtonClick" prefHeight="34.0" prefWidth="370.0" text="Entrar" />
    </children>
 </AnchorPane>

@@ -1,14 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import java.util.*?>
-<?import javafx.scene.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane xmlns="http://javafx.com/javafx"
-            xmlns:fx="http://javafx.com/fxml"
-            fx:controller="CONTROLLER_NAME"
-            prefHeight="400.0" prefWidth="600.0">
-
+<AnchorPane prefHeight="300.0" prefWidth="480.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.vetcaredesk.MenuController">
+   <children>
+      <Label layoutX="42.0" layoutY="38.0" style="-fx-font-size: 20px; -fx-font-weight: bold;" text="Menu principal" />
+      <Button layoutX="42.0" layoutY="103.0" mnemonicParsing="false" onAction="#onCadastroUsuarioButtonClick" prefHeight="36.0" prefWidth="396.0" text="Cadastro de veterinario" />
+      <Button layoutX="42.0" layoutY="228.0" mnemonicParsing="false" onAction="#onVoltarButtonClick" prefHeight="32.0" prefWidth="120.0" text="Voltar" />
+   </children>
 </AnchorPane>

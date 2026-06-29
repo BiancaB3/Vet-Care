@@ -1,7 +1,5 @@
 package com.example.vetcaredesk;
 
-package com.example.auladesk;
-
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -16,11 +14,13 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 
-import static com.example.auladesk.LoginController.showMenssage;
+import static com.example.vetcaredesk.LoginController.showMenssage;
 
 public class UsuarioController {
 
+    private static final String VETERINARIO_URL = "http://localhost:8080/veterinarios";
 
     @FXML
     private TextField txtNome;
@@ -32,6 +32,15 @@ public class UsuarioController {
     private PasswordField txtSenha;
 
     @FXML
+    private TextField txtCrmv;
+
+    @FXML
+    private TextField txtEspecialidade;
+
+    @FXML
+    private TextField txtTelefone;
+
+    @FXML
     private void onVoltarButtonClick(ActionEvent event) throws IOException {
 
         FXMLLoader loader = new FXMLLoader(getClass().getResource("menu-view.fxml"));
@@ -41,42 +50,67 @@ public class UsuarioController {
     }
 
     @FXML
-    private void onSalvarButtonClick(ActionEvent event)  throws IOException{
+    private void onSalvarButtonClick(ActionEvent event) throws IOException {
+        String nome = txtNome.getText().trim();
+        String email = txtEmail.getText().trim();
+        String senha = txtSenha.getText();
+        String crmv = txtCrmv.getText().trim();
+        String especialidade = txtEspecialidade.getText().trim();
+        String telefone = txtTelefone.getText().trim();
 
+        if (nome.isBlank()
+                || email.isBlank()
+                || senha.isBlank()
+                || crmv.isBlank()
+                || especialidade.isBlank()
+                || telefone.isBlank()) {
+            showMenssage("Preencha todos os campos do cadastro.", Alert.AlertType.WARNING);
+            return;
+        }
 
-        URL url = new URL("http://localhost:8080/usuarioAdm");
+        URL url = new URL(VETERINARIO_URL);
 
-        HttpURLConnection conn =(HttpURLConnection) url.openConnection();
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("POST");
-        conn.setRequestProperty("Content-type","application/json");
+        conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
+        conn.setConnectTimeout(5000);
+        conn.setReadTimeout(5000);
 
         conn.setDoOutput(true);
 
-        String json = "{\n" +
-                "  \"nome\": \""+txtNome.getText()+"\",\n" +
-                "  \"email\": \""+txtEmail.getText()+"\",\n" +
-                "  \"senha\": \""+txtSenha.getText()+"\"\n" +
-                "}";
+        String json = "{"
+                + "\"nome\":\"" + escapeJson(nome) + "\","
+                + "\"crmv\":\"" + escapeJson(crmv) + "\","
+                + "\"especialidade\":\"" + escapeJson(especialidade) + "\","
+                + "\"telefone\":\"" + escapeJson(telefone) + "\","
+                + "\"email\":\"" + escapeJson(email) + "\","
+                + "\"senha\":\"" + escapeJson(senha) + "\""
+                + "}";
 
-        try(OutputStream os = conn.getOutputStream()){
-            os.write(json.getBytes());
+        try (OutputStream os = conn.getOutputStream()) {
+            os.write(json.getBytes(StandardCharsets.UTF_8));
         }
 
-        var code = conn.getResponseCode();
-        if (code ==200){
+        int code = conn.getResponseCode();
+        if (code == HttpURLConnection.HTTP_OK) {
 
-            showMenssage("Sucesso ao salvar! ", Alert.AlertType.INFORMATION);
+            showMenssage("Veterinario cadastrado com sucesso!", Alert.AlertType.INFORMATION);
 
             FXMLLoader loader = new FXMLLoader(getClass().getResource("menu-view.fxml"));
             Scene scene = new Scene(loader.load());
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             stage.setScene(scene);
 
-        }else {
-            showMenssage("Erro ao salvar! ", Alert.AlertType.ERROR);
+        } else {
+            showMenssage("Erro ao salvar veterinario.", Alert.AlertType.ERROR);
         }
 
         conn.disconnect();
+    }
 
+    private static String escapeJson(String value) {
+        return value
+                .replace("\\", "\\\\")
+                .replace("\"", "\\\"");
     }
 }

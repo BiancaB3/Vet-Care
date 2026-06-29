@@ -1,7 +1,5 @@
 package com.example.vetcaredesk;
 
-package com.example.auladesk;
-
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -13,7 +11,6 @@ import java.io.IOException;
 
 public class MenuController {
 
-
     @FXML
     private void onVoltarButtonClick(ActionEvent event) throws IOException {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("login-view.fxml"));
@@ -23,7 +20,7 @@ public class MenuController {
     }
 
     @FXML
-    private void onCadastroUsuarioButtonClick(ActionEvent event) throws IOException{
+    private void onCadastroUsuarioButtonClick(ActionEvent event) throws IOException {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("usuario-view.fxml"));
         Scene scene = new Scene(loader.load());
         Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();

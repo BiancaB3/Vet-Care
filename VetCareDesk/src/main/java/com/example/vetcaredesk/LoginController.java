@@ -7,38 +7,69 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
-import javafx.scene.control.Label;
+import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 
 public class LoginController {
 
-    @FXML
-    private TextField txtLogin;
+    private static final String AUTH_URL = "http://localhost:8080/auth/login";
 
     @FXML
-    private TextField txtSenha;
+    private TextField txtEmail;
+
+    @FXML
+    private PasswordField txtSenha;
 
     @FXML
     private void onLoginButtonClick(ActionEvent event) throws IOException {
+        String email = txtEmail.getText().trim();
+        String senha = txtSenha.getText();
 
-        if (txtLogin.getText().equals("admin")
-                && txtSenha.getText().equals("12345")){
-            showMenssage("Login efetuado com o email!", Alert.AlertType.INFORMATION);
+        if (email.isBlank() || senha.isBlank()) {
+            showMenssage("Informe email e senha.", Alert.AlertType.WARNING);
+            return;
+        }
+
+        HttpURLConnection connection = (HttpURLConnection) new URL(AUTH_URL).openConnection();
+        connection.setRequestMethod("POST");
+        connection.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
+        connection.setConnectTimeout(5000);
+        connection.setReadTimeout(5000);
+        connection.setDoOutput(true);
+
+        String json = "{"
+                + "\"email\":\"" + escapeJson(email) + "\","
+                + "\"senha\":\"" + escapeJson(senha) + "\""
+                + "}";
+
+        try (OutputStream outputStream = connection.getOutputStream()) {
+            outputStream.write(json.getBytes(StandardCharsets.UTF_8));
+        }
+
+        int statusCode = connection.getResponseCode();
+        connection.disconnect();
+
+        if (statusCode == HttpURLConnection.HTTP_OK) {
+            showMenssage("Login efetuado com sucesso!", Alert.AlertType.INFORMATION);
 
             FXMLLoader loader = new FXMLLoader(getClass().getResource("menu-view.fxml"));
             Scene scene = new Scene(loader.load());
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             stage.setScene(scene);
 
-        }else {
-            showMenssage("Usuário e senha invalido!", Alert.AlertType.ERROR);
+        } else {
+            showMenssage("Email ou senha invalidos.", Alert.AlertType.ERROR);
         }
     }
 
-    public static void showMenssage(String mensagem, Alert.AlertType tipo){
+    public static void showMenssage(String mensagem, Alert.AlertType tipo) {
 
         Alert alert = new Alert(tipo);
         alert.setTitle("Login");
@@ -46,4 +77,10 @@ public class LoginController {
         alert.setContentText(mensagem);
         alert.showAndWait();
     }
-}}
+
+    private static String escapeJson(String value) {
+        return value
+                .replace("\\", "\\\\")
+                .replace("\"", "\\\"");
+    }
+}
