@@ -405,10 +405,26 @@
   }
 
   .headerInner {
-    min-height: 76px;
-    flex-wrap: wrap;
-    justify-content: center;
-    padding: 14px 0;
+    min-height: 68px;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    padding: 10px 0;
+    gap: 10px;
+  }
+
+  .brandTitle {
+    font-size: 1.75rem;
+  }
+
+  .header .navButton {
+    padding: 8px 14px;
+    font-size: 0.9rem;
+  }
+
+  .header .primaryButton {
+    padding: 12px 18px;
+    font-size: 0.95rem;
+    border-radius: 14px;
   }
 
   .headerActions,
@@ -419,7 +435,15 @@
   }
 
   .hero {
-    padding: 168px 0 80px;
+    padding: 132px 0 80px;
+  }
+
+  .heroTitle {
+    font-size: clamp(2.4rem, 9vw, 3rem);
+  }
+
+  .sectionTitle {
+    font-size: clamp(2rem, 8vw, 2.5rem);
   }
 
   .heroGrid,
