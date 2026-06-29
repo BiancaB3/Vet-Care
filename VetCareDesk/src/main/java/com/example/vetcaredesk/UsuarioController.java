@@ -20,7 +20,7 @@ import static com.example.vetcaredesk.LoginController.showMenssage;
 
 public class UsuarioController {
 
-    private static final String VETERINARIO_URL = "http://localhost:8080/veterinarios";
+    private static final String VETERINARIO_URL = "http://localhost:8080/veterinarios/bootstrap";
 
     @FXML
     private TextField txtNome;

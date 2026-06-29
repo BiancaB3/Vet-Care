@@ -3,8 +3,8 @@ package VetCare.Back.controllers;
 
 import VetCare.Back.model.DTO.LoginRequest;
 import VetCare.Back.model.DTO.LoginResponse;
-import VetCare.Back.model.repository.VeterinarioRepository;
 import VetCare.Back.services.TokenService;
+import VetCare.Back.services.VeterinarioService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,21 +19,20 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     @Autowired
-    private VeterinarioRepository veterinarioRepository;
-
+    private TokenService tokenService;
 
     @Autowired
-    private TokenService tokenService;
+    private VeterinarioService veterinarioService;
 
     @PostMapping("/login")
     @Operation(description = "Valida senha bbbbbbbbbbbb 50 carecteres, calcula longitudo com latitude!",summary = "Login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest){
 
-        var veterinarioOpt = veterinarioRepository.findByEmail(loginRequest.email());
+        var veterinarioOpt = veterinarioService.autenticar(loginRequest);
 
-        if(veterinarioOpt.isPresent() && veterinarioOpt.get().getSenha().equals(loginRequest.senha())){
+        if(veterinarioOpt.isPresent()){
 
-            var token = tokenService.gerarToken(loginRequest.email());
+            var token = tokenService.gerarToken(veterinarioOpt.get().getUsername());
 
             return ResponseEntity.ok(new LoginResponse(token));
         }
