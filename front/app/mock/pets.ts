@@ -1,3 +1,3 @@
-export const pets = [
-  { id: 1, nome: 'Rex', especie: 'Cachorro', tutor: 'Maria' },
-];
+//export const pets = [
+ // { id: 1, nome: 'Rex', especie: 'Cachorro', tutor: 'Maria' },
+];//
