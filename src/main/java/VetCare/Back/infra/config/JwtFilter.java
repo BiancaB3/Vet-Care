@@ -1,7 +1,7 @@
 package VetCare.Back.infra.config;
 
-import VetCare.Back.services.TokenService;
-import VetCare.Back.services.VeterinarioUserDetailsService;
+import VetCare.Back.application.services.TokenService;
+import VetCare.Back.application.services.VeterinarioUserDetailsService;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

@@ -1,6 +1,6 @@
 package VetCare.Back.domain.valueobjects;
 
-public class CPF {
+class CPF {
 
     private String cpf;
 

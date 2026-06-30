@@ -1,8 +1,8 @@
 package VetCare.Back.application.services;
 
-import VetCare.Back.model.DTO.LoginRequest;
-import VetCare.Back.model.entities.Veterinario;
-import VetCare.Back.model.repository.VeterinarioRepository;
+import VetCare.Back.application.DTO.LoginRequest;
+import VetCare.Back.domain.entities.Veterinario;
+import VetCare.Back.domain.repository.VeterinarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;

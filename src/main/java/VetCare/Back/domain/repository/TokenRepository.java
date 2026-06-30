@@ -1,6 +1,6 @@
 package VetCare.Back.domain.repository;
 
-import VetCare.Back.model.entities.Token;
+import VetCare.Back.domain.entities.Token;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

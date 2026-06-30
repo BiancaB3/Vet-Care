@@ -1,8 +1,8 @@
 package VetCare.Back.presentation;
 
-import VetCare.Back.model.entities.Veterinario;
-import VetCare.Back.model.repository.VeterinarioRepository;
-import VetCare.Back.services.VeterinarioService;
+import VetCare.Back.domain.entities.Veterinario;
+import VetCare.Back.domain.repository.VeterinarioRepository;
+import VetCare.Back.application.services.VeterinarioService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;

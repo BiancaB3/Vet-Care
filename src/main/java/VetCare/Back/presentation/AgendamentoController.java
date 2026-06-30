@@ -1,9 +1,9 @@
 package VetCare.Back.presentation;
 
-import VetCare.Back.model.entities.Agendamento;
-import VetCare.Back.model.repository.AgendamentoRepository;
-import VetCare.Back.model.repository.PetRepository;
-import VetCare.Back.model.repository.VeterinarioRepository;
+import VetCare.Back.domain.entities.Agendamento;
+import VetCare.Back.domain.repository.AgendamentoRepository;
+import VetCare.Back.domain.repository.PetRepository;
+import VetCare.Back.domain.repository.VeterinarioRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;

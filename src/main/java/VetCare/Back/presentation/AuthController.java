@@ -1,10 +1,10 @@
 package VetCare.Back.presentation;
 
 
-import VetCare.Back.model.DTO.LoginRequest;
-import VetCare.Back.model.DTO.LoginResponse;
-import VetCare.Back.services.TokenService;
-import VetCare.Back.services.VeterinarioService;
+import VetCare.Back.application.DTO.LoginRequest;
+import VetCare.Back.application.DTO.LoginResponse;
+import VetCare.Back.application.services.TokenService;
+import VetCare.Back.application.services.VeterinarioService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;

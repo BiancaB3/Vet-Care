@@ -1,6 +1,6 @@
 package VetCare.Back.application.services;
 
-import VetCare.Back.model.repository.VeterinarioRepository;
+import VetCare.Back.domain.repository.VeterinarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

@@ -1,5 +1,5 @@
 package VetCare.Back.domain.repository;
-import VetCare.Back.model.entities.Veterinario;
+import VetCare.Back.domain.entities.Veterinario;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import java.util.Optional;
