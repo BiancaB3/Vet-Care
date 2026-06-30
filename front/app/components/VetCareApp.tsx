@@ -17,8 +17,18 @@ import {
   type ConsultationDraft,
   type DraftKind,
 } from '../context/DraftContext';
+import api from '../services/api';
 import { loginService } from '../services/authService';
 import { setToken, setUsuario } from '../redux/slices/authSlice';
+
+interface VeterinarioApi {
+  id: number;
+  nome: string;
+  crmv: string;
+  especialidade: string;
+  telefone: string;
+  email: string;
+}
 
 // Mock data for testing
 const MOCK_VETERINARIANS = [
@@ -280,9 +290,20 @@ const VetCareApp: React.FC = () => {
 
       dispatch(setToken({ token: loginResult.token }));
 
+      let veterinarioPerfil: VeterinarioApi | null = null;
+      try {
+        const resposta = await api.get<VeterinarioApi[]>('/veterinarios');
+        veterinarioPerfil =
+          resposta.data.find(
+            (v) => v.email.toLowerCase() === loginForm.email.toLowerCase(),
+          ) ?? null;
+      } catch {
+        veterinarioPerfil = null;
+      }
+
       const usuario = {
-        id: null,
-        nome: loginForm.email,
+        id: veterinarioPerfil?.id ?? null,
+        nome: veterinarioPerfil?.nome || loginForm.email,
         email: loginForm.email,
         status: 'ATIVO',
         senha: '',
@@ -290,11 +311,11 @@ const VetCareApp: React.FC = () => {
       dispatch(setUsuario({ usuario }));
 
       const vet: Veterinarian = {
-        id: loginForm.email,
-        name: loginForm.email,
+        id: String(veterinarioPerfil?.id ?? loginForm.email),
+        name: veterinarioPerfil?.nome || loginForm.email,
         email: loginForm.email,
-        crmv: 'Nao informado',
-        phone: '',
+        crmv: veterinarioPerfil?.crmv || 'Nao informado',
+        phone: veterinarioPerfil?.telefone || '',
       };
 
       login(vet);
