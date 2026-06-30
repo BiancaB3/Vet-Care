@@ -7,6 +7,7 @@ import {
   Trash2, Edit2, UserPlus, PlusCircle, FilePlus, Eye, EyeOff,
   Cat, Feather, Mouse, Turtle, MessageCircle, Check, X as XIcon
 } from 'lucide-react';
+import { useDispatch } from 'react-redux';
 import { useVet, Veterinarian, Tutor, Pet, Appointment, Consultation } from '../context/VetContext';
 import {
   useDraft,
@@ -16,6 +17,8 @@ import {
   type ConsultationDraft,
   type DraftKind,
 } from '../context/DraftContext';
+import { loginService } from '../services/authService';
+import { setToken, setUsuario } from '../redux/slices/authSlice';
 
 // Mock data for testing
 const MOCK_VETERINARIANS = [
@@ -185,6 +188,7 @@ const emptyAppointmentForm = (): AppointmentDraft => emptyDraftByKind('appointme
 const VetCareApp: React.FC = () => {
   const { currentVet, login, logout, tutors, addTutor, updateTutor, deleteTutor, pets, addPet, updatePet, deletePet, appointments, addAppointment, updateAppointment, deleteAppointment, updateAppointmentStatus, consultations, addConsultation, updateConsultation, deleteConsultation } = useVet();
   const { getDraft, salvarProgresso, limparRascunho, temRascunho } = useDraft();
+  const dispatch = useDispatch();
   const skipDraftSaveRef = useRef<Record<DraftKind, boolean>>({
     appointment: false,
     tutor: false,
@@ -261,19 +265,49 @@ const VetCareApp: React.FC = () => {
     return `(${digits.slice(0, 2)})${digits.slice(2, 7)}-${digits.slice(7, 11)}`;
   };
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const vet = MOCK_VETERINARIANS.find(
-      (v) => v.email === loginForm.email && loginForm.password === '123456'
-    );
+    try {
+      const loginResult = await loginService({
+        email: loginForm.email,
+        senha: loginForm.password,
+      });
 
-    if (vet) {
+      if (!loginResult?.token) {
+        showToast('Email ou senha incorretos');
+        return;
+      }
+
+      dispatch(setToken({ token: loginResult.token }));
+
+      const usuario = {
+        id: null,
+        nome: loginForm.email,
+        email: loginForm.email,
+        status: 'ATIVO',
+        senha: '',
+      };
+      dispatch(setUsuario({ usuario }));
+
+      const vet: Veterinarian = {
+        id: loginForm.email,
+        name: loginForm.email,
+        email: loginForm.email,
+        crmv: 'Nao informado',
+        phone: '',
+      };
+
       login(vet);
       setScreen('dashboard');
       setLoginForm({ email: '', password: '' });
       showToast('Login realizado com sucesso!');
-    } else {
-      showToast('Email ou senha incorretos');
+    } catch (error: any) {
+      const mensagem =
+        error?.response?.data && typeof error.response.data === 'string'
+          ? error.response.data
+          : 'Email ou senha incorretos';
+
+      showToast(mensagem);
     }
   };
 

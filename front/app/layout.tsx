@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { AuthProvider } from './context/AuthContext';
 import { DraftProvider } from './context/DraftContext';
 import { VetProvider } from './context/VetContext';
+import StoreProvider from './redux/StoreProvider';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -17,11 +18,13 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <body className="antialiased bg-gradient-to-br from-slate-50 via-blue-50 to-emerald-50">
-        <AuthProvider>
-          <VetProvider>
-            <DraftProvider>{children}</DraftProvider>
-          </VetProvider>
-        </AuthProvider>
+        <StoreProvider>
+          <AuthProvider>
+            <VetProvider>
+              <DraftProvider>{children}</DraftProvider>
+            </VetProvider>
+          </AuthProvider>
+        </StoreProvider>
       </body>
     </html>
   );
