@@ -1,6 +1,6 @@
 
 package VetCare.Back.infra.external;
-
+import VetCare.Back.infra.dto.ViaCepResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Component;
 
