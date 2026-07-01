@@ -33,6 +33,9 @@ public class PetController {
     @PostMapping
     @Operation(summary = "Cadastrar pet", description = "Cadastra um novo pet no sistema.")
     public ResponseEntity<?> salvar(@RequestBody Pet pet) {
+        var validacao = validarPet(pet);
+        if (validacao != null) return validacao;
+
         if (pet.getTutor() == null || pet.getTutor().getId() == null)
             return ResponseEntity.badRequest().body("Informe tutor.id para salvar o pet.");
         var tutor = tutorRepository.findById(pet.getTutor().getId()).orElse(null);
@@ -44,6 +47,9 @@ public class PetController {
     @PutMapping("/{id}")
     @Operation(summary = "Atualizar pet", description = "Atualiza os dados de um pet existente.")
     public ResponseEntity<?> atualizar(@PathVariable Long id, @RequestBody Pet pet) {
+        var validacao = validarPet(pet);
+        if (validacao != null) return validacao;
+
         var petBanco = petRepository.findById(id).orElse(null);
         if (petBanco == null) return ResponseEntity.notFound().build();
         if (pet.getTutor() == null || pet.getTutor().getId() == null)
@@ -56,6 +62,28 @@ public class PetController {
         petBanco.setCor(pet.getCor()); petBanco.setTutor(tutor);
         petRepository.save(petBanco);
         return ResponseEntity.ok("Atualizado com sucesso!");
+    }
+
+    private ResponseEntity<?> validarPet(Pet pet) {
+        if (pet == null) return ResponseEntity.badRequest().body("Dados do pet nao informados.");
+
+        if (pet.getNome() == null || pet.getNome().isBlank()) {
+            return ResponseEntity.badRequest().body("Nome do pet e obrigatorio.");
+        }
+
+        if (pet.getEspecie() == null || pet.getEspecie().isBlank()) {
+            return ResponseEntity.badRequest().body("Especie do pet e obrigatoria.");
+        }
+
+        if (pet.getSexo() == null || pet.getSexo().isBlank()) {
+            return ResponseEntity.badRequest().body("Sexo do pet e obrigatorio.");
+        }
+
+        if (pet.getCor() == null || pet.getCor().isBlank()) {
+            return ResponseEntity.badRequest().body("Cor do pet e obrigatoria.");
+        }
+
+        return null;
     }
 
     @DeleteMapping("/{id}")

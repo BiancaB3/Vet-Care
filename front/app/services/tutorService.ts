@@ -7,6 +7,7 @@ type TutorApi = {
   email: string;
   telefone: string;
   cpf?: string | null;
+  cep?: string | null;
   endereco?: string | null;
   status?: string | null;
 };
@@ -16,6 +17,7 @@ type TutorPayload = {
   email: string;
   telefone: string;
   cpf?: string | null;
+  cep?: string | null;
   endereco?: string | null;
   status?: string | null;
 };
@@ -27,6 +29,8 @@ function toTutorModel(item: TutorApi): Tutor {
     name: item.nome,
     email: item.email,
     phone: item.telefone,
+    cpf: item.cpf ?? '',
+    cep: item.cep ?? '',
     createdAt: new Date(),
   };
 }

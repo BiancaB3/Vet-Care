@@ -22,6 +22,7 @@ public class Tutor {
     private String nome;
     @Column(unique = true)
     private String cpf;
+    private String cep;
     private String telefone;
     @Column(unique = true)
     private String email;
@@ -54,6 +55,14 @@ public class Tutor {
 
     public void setCpf(String cpf) {
         this.cpf = cpf;
+    }
+
+    public String getCep() {
+        return cep;
+    }
+
+    public void setCep(String cep) {
+        this.cep = cep;
     }
 
     public String getTelefone() {

@@ -19,6 +19,8 @@ export interface Tutor {
   name: string;
   email: string;
   phone: string;
+  cpf?: string;
+  cep?: string;
   photo?: string;
   createdAt: Date;
 }
@@ -32,6 +34,8 @@ export interface Pet {
   breed?: string;
   age?: number;
   weight?: number;
+  sex?: string;
+  color?: string;
   photo?: string;
   createdAt: Date;
 }
@@ -153,6 +157,8 @@ export function VetProvider({ children }: { children: ReactNode }) {
       raca: pet.breed,
       idade: pet.age,
       peso: pet.weight,
+      sexo: pet.sex,
+      cor: pet.color,
     });
 
     setPets(prev => [...prev, criado]);
@@ -178,6 +184,8 @@ export function VetProvider({ children }: { children: ReactNode }) {
       raca: data.breed ?? existente?.breed,
       idade: data.age ?? existente?.age,
       peso: data.weight ?? existente?.weight,
+      sexo: data.sex ?? existente?.sex,
+      cor: data.color ?? existente?.color,
     });
 
     setPets(prev => prev.map(p => (p.id === id ? atualizado : p)));

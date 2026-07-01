@@ -24,6 +24,8 @@ type PetPayload = {
   raca?: string;
   idade?: number;
   peso?: number;
+  sexo?: string;
+  cor?: string;
 };
 
 function toPetModel(vetId: string, item: PetApi): Pet {
@@ -36,6 +38,8 @@ function toPetModel(vetId: string, item: PetApi): Pet {
     breed: item.raca ?? undefined,
     age: item.idade ?? undefined,
     weight: item.peso ?? undefined,
+    sex: item.sexo ?? undefined,
+    color: item.cor ?? undefined,
     createdAt: new Date(),
   };
 }
@@ -47,8 +51,8 @@ function toPetPayload(payload: PetPayload) {
     raca: payload.raca ?? null,
     idade: payload.idade ?? null,
     peso: payload.peso ?? null,
-    sexo: null,
-    cor: null,
+    sexo: payload.sexo ?? null,
+    cor: payload.cor ?? null,
     tutor: {
       id: Number(payload.tutorId),
     },

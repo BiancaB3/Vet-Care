@@ -16,6 +16,8 @@ export interface TutorDraft {
   name: string;
   email: string;
   phone: string;
+  cpf: string;
+  cep: string;
 }
 
 export interface PetDraft {
@@ -25,6 +27,8 @@ export interface PetDraft {
   breed: string;
   age: string;
   weight: string;
+  sex: string;
+  color: string;
 }
 
 export interface ConsultationDraft {
@@ -59,6 +63,8 @@ const emptyTutor = (): TutorDraft => ({
   name: '',
   email: '',
   phone: '',
+  cpf: '',
+  cep: '',
 });
 
 const emptyPet = (): PetDraft => ({
@@ -68,6 +74,8 @@ const emptyPet = (): PetDraft => ({
   breed: '',
   age: '',
   weight: '',
+  sex: '',
+  color: '',
 });
 
 const emptyConsultation = (): ConsultationDraft => ({

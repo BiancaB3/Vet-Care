@@ -245,7 +245,7 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda' }) =>
   const [registerForm, setRegisterForm] = useState({ name: '', crmv: '', email: '', password: '', phone: '' });
   const [forgotForm, setForgotForm] = useState({ email: '' });
   const [forgotSuccess, setForgotSuccess] = useState(false);
-  const [tutorForm, setTutorForm] = useState({ name: '', email: '', phone: '' });
+  const [tutorForm, setTutorForm] = useState({ name: '', email: '', phone: '', cpf: '', cep: '' });
   const [tutorPhoto, setTutorPhoto] = useState<string>('');
   const [petPhoto, setPetPhoto] = useState<string>('');
   const [appointmentForm, setAppointmentForm] = useState<AppointmentDraft>(emptyAppointmentForm());
@@ -267,6 +267,20 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda' }) =>
     if (digits.length <= 6) return `(${digits.slice(0, 2)})${digits.slice(2)}`;
     if (digits.length <= 10) return `(${digits.slice(0, 2)})${digits.slice(2, 6)}-${digits.slice(6)}`;
     return `(${digits.slice(0, 2)})${digits.slice(2, 7)}-${digits.slice(7, 11)}`;
+  };
+
+  const formatCpf = (value: string) => {
+    const digits = value.replace(/\D/g, '').slice(0, 11);
+    if (digits.length <= 3) return digits;
+    if (digits.length <= 6) return `${digits.slice(0, 3)}.${digits.slice(3)}`;
+    if (digits.length <= 9) return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`;
+    return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
+  };
+
+  const formatCep = (value: string) => {
+    const digits = value.replace(/\D/g, '').slice(0, 8);
+    if (digits.length <= 5) return digits;
+    return `${digits.slice(0, 5)}-${digits.slice(5)}`;
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -361,15 +375,17 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda' }) =>
       setEditingTutorId(id);
       if (temRascunho('tutor', id)) {
         const d = getDraft('tutor', id);
-        if (d) setTutorForm({ name: d.name, email: d.email, phone: d.phone });
+        if (d) setTutorForm({ name: d.name, email: d.email, phone: d.phone, cpf: d.cpf, cep: d.cep });
       } else if (id) {
         const tutor = currentVetTutors.find((t) => t.id === id);
         setTutorForm(
-          tutor ? { name: tutor.name, email: tutor.email, phone: tutor.phone } : { name: '', email: '', phone: '' }
+          tutor
+            ? { name: tutor.name, email: tutor.email, phone: tutor.phone, cpf: tutor.cpf ?? '', cep: tutor.cep ?? '' }
+            : { name: '', email: '', phone: '', cpf: '', cep: '' }
         );
         setTutorPhoto(tutor?.photo ?? '');
       } else {
-        setTutorForm({ name: '', email: '', phone: '' });
+        setTutorForm({ name: '', email: '', phone: '', cpf: '', cep: '' });
         setTutorPhoto('');
       }
     } else if (type === 'pet') {
@@ -388,6 +404,8 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda' }) =>
                 breed: p.breed ?? '',
                 age: p.age !== undefined && p.age !== null ? String(p.age) : '',
                 weight: p.weight !== undefined && p.weight !== null ? String(p.weight) : '',
+                sex: p.sex ?? '',
+                color: p.color ?? '',
               }
             : emptyDraftByKind('pet')
         );
@@ -477,14 +495,28 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda' }) =>
     e.preventDefault();
     skipDraftSaveRef.current.tutor = true;
     limparRascunho('tutor', editingTutorId ?? null);
+    const cpfValido = /^\d{3}\.\d{3}\.\d{3}-\d{2}$/.test(tutorForm.cpf);
+    const cepValido = /^\d{5}-\d{3}$/.test(tutorForm.cep);
+
+    if (!cpfValido) {
+      showToast('CPF invalido. Use o formato 000.000.000-00.');
+      return;
+    }
+
+    if (!cepValido) {
+      showToast('CEP invalido. Use o formato 00000-000.');
+      return;
+    }
+
     try {
       if (editingTutorId) {
         const tutorAtualizado = await atualizarTutor(Number(editingTutorId), {
           nome: tutorForm.name,
           email: tutorForm.email,
           telefone: tutorForm.phone,
-          cpf: null,
-          endereco: null,
+          cpf: tutorForm.cpf,
+          cep: tutorForm.cep,
+          endereco: tutorForm.cep,
           status: 'ATIVO',
         });
         setApiTutors((prev) => prev.map((item) => (item.id === editingTutorId ? tutorAtualizado : item)));
@@ -496,8 +528,9 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda' }) =>
           nome: tutorForm.name,
           email: tutorForm.email,
           telefone: tutorForm.phone,
-          cpf: null,
-          endereco: null,
+          cpf: tutorForm.cpf,
+          cep: tutorForm.cep,
+          endereco: tutorForm.cep,
           status: 'ATIVO',
         });
         setApiTutors((prev) => [...prev, tutorCriado]);
@@ -512,7 +545,7 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda' }) =>
 
     closeModal();
     setEditingTutorId(null);
-    setTutorForm({ name: '', email: '', phone: '' });
+    setTutorForm({ name: '', email: '', phone: '', cpf: '', cep: '' });
     setTutorPhoto('');
   };
 
@@ -529,9 +562,16 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda' }) =>
       breed: petForm.breed,
       age: petForm.age ? parseInt(petForm.age, 10) : undefined,
       weight: petForm.weight ? parseFloat(petForm.weight) : undefined,
+      sex: petForm.sex,
+      color: petForm.color,
       photo: petPhoto || undefined,
       createdAt: new Date(),
     };
+
+    if (!petData.sex || !petData.color) {
+      showToast('Preencha sexo e cor do pet.');
+      return;
+    }
     try {
       if (editingPetId) {
         await updatePet(editingPetId, petData);
@@ -1416,11 +1456,11 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda' }) =>
                           const tutor = currentVetTutors.find((t) => t.id === editingTutorId);
                           setTutorForm(
                             tutor
-                              ? { name: tutor.name, email: tutor.email, phone: tutor.phone }
-                              : { name: '', email: '', phone: '' }
+                              ? { name: tutor.name, email: tutor.email, phone: tutor.phone, cpf: tutor.cpf ?? '', cep: tutor.cep ?? '' }
+                              : { name: '', email: '', phone: '', cpf: '', cep: '' }
                           );
                         } else {
-                          setTutorForm({ name: '', email: '', phone: '' });
+                          setTutorForm({ name: '', email: '', phone: '', cpf: '', cep: '' });
                         }
                       }}
                       className="shrink-0 px-3 py-1.5 font-semibold rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-900"
@@ -1479,6 +1519,16 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda' }) =>
                     <input type="tel" value={tutorForm.phone} onChange={(e) => setTutorForm({ ...tutorForm, phone: formatPhone(e.target.value) })} placeholder="(XX)XXXXX-XXXX" required className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium" />
                   </div>
                 </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">CPF</label>
+                    <input type="text" value={tutorForm.cpf} onChange={(e) => setTutorForm({ ...tutorForm, cpf: formatCpf(e.target.value) })} placeholder="000.000.000-00" required className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">CEP</label>
+                    <input type="text" value={tutorForm.cep} onChange={(e) => setTutorForm({ ...tutorForm, cep: formatCep(e.target.value) })} placeholder="00000-000" required className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium" />
+                  </div>
+                </div>
                 <div className="flex gap-3 pt-4">
                   <button type="button" onClick={closeModal} className="flex-1 px-4 py-3 border-2 text-slate-700 font-bold rounded-xl hover:bg-slate-100">
                     Cancelar
@@ -1518,6 +1568,8 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda' }) =>
                             breed: petToEdit.breed ?? '',
                             age: petToEdit.age !== undefined && petToEdit.age !== null ? String(petToEdit.age) : '',
                             weight: petToEdit.weight !== undefined && petToEdit.weight !== null ? String(petToEdit.weight) : '',
+                            sex: petToEdit.sex ?? '',
+                            color: petToEdit.color ?? '',
                           });
                         } else {
                           setPetForm(emptyDraftByKind('pet'));
@@ -1640,6 +1692,32 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda' }) =>
                       value={petForm.weight}
                       onChange={(e) => setPetForm({ ...petForm, weight: e.target.value })}
                       placeholder="Peso em kg"
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">Sexo</label>
+                    <select
+                      value={petForm.sex}
+                      onChange={(e) => setPetForm({ ...petForm, sex: e.target.value })}
+                      required
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium"
+                    >
+                      <option value="">Selecione o sexo</option>
+                      <option value="Macho">Macho</option>
+                      <option value="Femea">Fêmea</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">Cor</label>
+                    <input
+                      type="text"
+                      value={petForm.color}
+                      onChange={(e) => setPetForm({ ...petForm, color: e.target.value })}
+                      placeholder="Cor"
+                      required
                       className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium"
                     />
                   </div>
