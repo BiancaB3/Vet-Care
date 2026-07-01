@@ -38,7 +38,8 @@ public class SecurityConfiguration {
                         ).permitAll()
                         .requestMatchers(
                                 HttpMethod.POST,
-                                "/veterinarios/bootstrap"
+                                "/veterinarios/bootstrap",
+                                "/veterinarios/cadastro"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )

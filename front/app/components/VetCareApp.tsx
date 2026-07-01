@@ -434,11 +434,44 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda' }) =>
     }
   };
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    showToast('Cadastro realizado! Faca login para continuar');
-    setScreen('login');
-    setRegisterForm({ name: '', crmv: '', email: '', password: '', phone: '' });
+
+    if (!registerForm.name.trim() || !registerForm.crmv.trim() || !registerForm.email.trim() || !registerForm.password.trim()) {
+      showToast('Preencha nome, CRMV, email e senha para cadastrar.');
+      return;
+    }
+
+    try {
+      await api.post('/veterinarios/cadastro', {
+        nome: registerForm.name.trim(),
+        crmv: registerForm.crmv.trim(),
+        especialidade: 'Clinico geral',
+        telefone: registerForm.phone.trim(),
+        email: registerForm.email.trim(),
+        senha: registerForm.password,
+      });
+
+      showToast('Cadastro realizado! Faca login para continuar');
+      setScreen('login');
+      setLoginForm({ email: registerForm.email.trim(), password: '' });
+      setRegisterForm({ name: '', crmv: '', email: '', password: '', phone: '' });
+    } catch (error: any) {
+      const status = error?.response?.status;
+      const data = error?.response?.data;
+
+      if (status === 409) {
+        showToast(typeof data === 'string' ? data : 'Ja existe veterinario com este email ou CRMV.');
+        return;
+      }
+
+      const mensagem =
+        typeof data === 'string' && data.trim().length > 0
+          ? data
+          : 'Nao foi possivel concluir o cadastro.';
+
+      showToast(mensagem);
+    }
   };
 
   const handleForgotPassword = (e: React.FormEvent) => {

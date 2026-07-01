@@ -29,6 +29,10 @@ public class Tutor {
     private String endereco;
     private EnumStatusTutor status = EnumStatusTutor.ATIVO;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "veterinario_id")
+    private Veterinario veterinario;
+
     @OneToMany(mappedBy = "tutor", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<Pet> pets = new ArrayList<>();
@@ -95,6 +99,14 @@ public class Tutor {
 
     public void setStatus(EnumStatusTutor status) {
         this.status = status;
+    }
+
+    public Veterinario getVeterinario() {
+        return veterinario;
+    }
+
+    public void setVeterinario(Veterinario veterinario) {
+        this.veterinario = veterinario;
     }
 
     public List<Pet> getPets() {

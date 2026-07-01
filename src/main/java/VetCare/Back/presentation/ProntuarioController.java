@@ -8,6 +8,7 @@ import VetCare.Back.domain.repository.VeterinarioRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,30 +34,41 @@ public class ProntuarioController {
     @GetMapping
     @Operation(summary = "Listar prontuarios", description = "Retorna a lista de prontuarios cadastrados.")
     public ResponseEntity<List<Prontuario>> listarTodos() {
-        return ResponseEntity.ok(prontuarioRepository.findAll());
+        var veterinario = obterVeterinarioAutenticado();
+        if (veterinario == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        return ResponseEntity.ok(prontuarioRepository.findByVeterinarioId(veterinario.getId()));
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Buscar prontuario por id", description = "Retorna um prontuario pelo identificador informado.")
     public ResponseEntity<Prontuario> buscarPorId(@PathVariable Long id) {
-        var prontuario = prontuarioRepository.findById(id);
+        var veterinario = obterVeterinarioAutenticado();
+        if (veterinario == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        var prontuario = prontuarioRepository.findByIdAndVeterinarioId(id, veterinario.getId());
         return prontuario.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping
     @Operation(summary = "Cadastrar prontuario", description = "Cadastra um novo prontuario no sistema.")
     public ResponseEntity<?> salvar(@RequestBody Prontuario prontuario) {
+        var veterinario = obterVeterinarioAutenticado();
+        if (veterinario == null) {
+            return ResponseEntity.status(401).body("Veterinario nao autenticado.");
+        }
+
         if (prontuario.getPet() == null || prontuario.getPet().getId() == null) {
             return ResponseEntity.badRequest().body("Informe pet.id para salvar o prontuario.");
         }
-        if (prontuario.getVeterinario() == null || prontuario.getVeterinario().getId() == null) {
-            return ResponseEntity.badRequest().body("Informe veterinario.id para salvar o prontuario.");
-        }
 
-        var pet = petRepository.findById(prontuario.getPet().getId()).orElse(null);
-        var veterinario = veterinarioRepository.findById(prontuario.getVeterinario().getId()).orElse(null);
-        if (pet == null || veterinario == null) {
-            return ResponseEntity.badRequest().body("Pet ou Veterinario informado nao existe.");
+        var pet = petRepository.findByIdAndTutorVeterinarioId(prontuario.getPet().getId(), veterinario.getId()).orElse(null);
+        if (pet == null) {
+            return ResponseEntity.badRequest().body("Pet informado nao existe para o veterinario autenticado.");
         }
 
         prontuario.setPet(pet);
@@ -78,7 +90,12 @@ public class ProntuarioController {
     @PutMapping("/{id}")
     @Operation(summary = "Atualizar prontuario", description = "Atualiza os dados de um prontuario existente.")
     public ResponseEntity<?> atualizar(@PathVariable Long id, @RequestBody Prontuario prontuario) {
-        var prontuarioBanco = prontuarioRepository.findById(id).orElse(null);
+        var veterinario = obterVeterinarioAutenticado();
+        if (veterinario == null) {
+            return ResponseEntity.status(401).body("Veterinario nao autenticado.");
+        }
+
+        var prontuarioBanco = prontuarioRepository.findByIdAndVeterinarioId(id, veterinario.getId()).orElse(null);
         if (prontuarioBanco == null) {
             return ResponseEntity.notFound().build();
         }
@@ -86,14 +103,9 @@ public class ProntuarioController {
         if (prontuario.getPet() == null || prontuario.getPet().getId() == null) {
             return ResponseEntity.badRequest().body("Informe pet.id para atualizar o prontuario.");
         }
-        if (prontuario.getVeterinario() == null || prontuario.getVeterinario().getId() == null) {
-            return ResponseEntity.badRequest().body("Informe veterinario.id para atualizar o prontuario.");
-        }
-
-        var pet = petRepository.findById(prontuario.getPet().getId()).orElse(null);
-        var veterinario = veterinarioRepository.findById(prontuario.getVeterinario().getId()).orElse(null);
-        if (pet == null || veterinario == null) {
-            return ResponseEntity.badRequest().body("Pet ou Veterinario informado nao existe.");
+        var pet = petRepository.findByIdAndTutorVeterinarioId(prontuario.getPet().getId(), veterinario.getId()).orElse(null);
+        if (pet == null) {
+            return ResponseEntity.badRequest().body("Pet informado nao existe para o veterinario autenticado.");
         }
 
         prontuarioBanco.setDataAtendimento(prontuario.getDataAtendimento());
@@ -115,6 +127,23 @@ public class ProntuarioController {
         }
 
         return ResponseEntity.ok(prontuarioRepository.save(prontuarioBanco));
+    }
+
+    private VetCare.Back.domain.entities.Veterinario obterVeterinarioAutenticado() {
+        Authentication authentication = org.springframework.security.core.context.SecurityContextHolder
+                .getContext()
+                .getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return null;
+        }
+
+        var principal = authentication.getPrincipal();
+        if (principal instanceof VetCare.Back.domain.entities.Veterinario veterinario) {
+            return veterinario;
+        }
+
+        return veterinarioRepository.findByEmail(authentication.getName()).orElse(null);
     }
 }
 

@@ -2,9 +2,11 @@ package VetCare.Back.presentation;
 
 import VetCare.Back.domain.entities.Tutor;
 import VetCare.Back.domain.repository.TutorRepository;
+import VetCare.Back.domain.repository.VeterinarioRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -17,16 +19,29 @@ public class TutorController {
     @Autowired
     private TutorRepository tutorRepository;
 
+    @Autowired
+    private VeterinarioRepository veterinarioRepository;
+
     @GetMapping
     @Operation(summary = "Listar tutores", description = "Retorna a lista de tutores cadastrados.")
     public ResponseEntity<List<Tutor>> listarTodos() {
-        return ResponseEntity.ok(tutorRepository.findAll());
+        var veterinario = obterVeterinarioAutenticado();
+        if (veterinario == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        return ResponseEntity.ok(tutorRepository.findByVeterinarioId(veterinario.getId()));
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Buscar tutor por id", description = "Retorna um tutor pelo identificador informado.")
     public ResponseEntity<Tutor> buscarPorId(@PathVariable Long id) {
-        return tutorRepository.findById(id)
+        var veterinario = obterVeterinarioAutenticado();
+        if (veterinario == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        return tutorRepository.findByIdAndVeterinarioId(id, veterinario.getId())
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
@@ -34,22 +49,34 @@ public class TutorController {
     @PostMapping
     @Operation(summary = "Cadastrar tutor", description = "Cadastra um novo tutor no sistema.")
     public ResponseEntity<?> salvar(@RequestBody Tutor tutor) {
+        var veterinario = obterVeterinarioAutenticado();
+        if (veterinario == null) {
+            return ResponseEntity.status(401).body("Veterinario nao autenticado.");
+        }
+
         var validacao = validarTutor(tutor);
         if (validacao != null) {
             return validacao;
         }
+
+        tutor.setVeterinario(veterinario);
         return ResponseEntity.ok(tutorRepository.save(tutor).getId());
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Atualizar tutor", description = "Atualiza os dados de um tutor existente.")
     public ResponseEntity<?> atualizar(@PathVariable Long id, @RequestBody Tutor tutor) {
+        var veterinario = obterVeterinarioAutenticado();
+        if (veterinario == null) {
+            return ResponseEntity.status(401).body("Veterinario nao autenticado.");
+        }
+
         var validacao = validarTutor(tutor);
         if (validacao != null) {
             return validacao;
         }
 
-        var tutorBanco = tutorRepository.findById(id).orElse(null);
+        var tutorBanco = tutorRepository.findByIdAndVeterinarioId(id, veterinario.getId()).orElse(null);
         if (tutorBanco != null) {
             tutorBanco.setNome(tutor.getNome());
             tutorBanco.setCpf(tutor.getCpf());
@@ -133,11 +160,33 @@ public class TutorController {
     @DeleteMapping("/{id}")
     @Operation(summary = "Remover tutor", description = "Remove um tutor pelo identificador informado.")
     public ResponseEntity<?> remover(@PathVariable Long id) {
-        if (!tutorRepository.existsById(id)) {
+        var veterinario = obterVeterinarioAutenticado();
+        if (veterinario == null) {
+            return ResponseEntity.status(401).body("Veterinario nao autenticado.");
+        }
+
+        if (!tutorRepository.existsByIdAndVeterinarioId(id, veterinario.getId())) {
             return ResponseEntity.notFound().build();
         }
 
         tutorRepository.deleteById(id);
         return ResponseEntity.ok("Removido com sucesso!");
+    }
+
+    private VetCare.Back.domain.entities.Veterinario obterVeterinarioAutenticado() {
+        Authentication authentication = org.springframework.security.core.context.SecurityContextHolder
+                .getContext()
+                .getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return null;
+        }
+
+        var principal = authentication.getPrincipal();
+        if (principal instanceof VetCare.Back.domain.entities.Veterinario veterinario) {
+            return veterinario;
+        }
+
+        return veterinarioRepository.findByEmail(authentication.getName()).orElse(null);
     }
 }
