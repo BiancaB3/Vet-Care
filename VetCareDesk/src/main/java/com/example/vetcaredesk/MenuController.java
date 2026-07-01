@@ -13,6 +13,7 @@ public class MenuController {
 
     @FXML
     private void onVoltarButtonClick(ActionEvent event) throws IOException {
+        SessionContext.clear();
         FXMLLoader loader = new FXMLLoader(getClass().getResource("login-view.fxml"));
         Scene scene = new Scene(loader.load());
         Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();

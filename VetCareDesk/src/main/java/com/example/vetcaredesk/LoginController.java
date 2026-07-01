@@ -12,6 +12,7 @@ import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -54,9 +55,18 @@ public class LoginController {
         }
 
         int statusCode = connection.getResponseCode();
-        connection.disconnect();
 
         if (statusCode == HttpURLConnection.HTTP_OK) {
+            String token = readResponseBody(connection.getInputStream());
+            String jwt = extractToken(token);
+
+            if (jwt == null || jwt.isBlank()) {
+                connection.disconnect();
+                showMenssage("Resposta de autenticacao invalida.", Alert.AlertType.ERROR);
+                return;
+            }
+
+            SessionContext.setToken(jwt);
             showMenssage("Login efetuado com sucesso!", Alert.AlertType.INFORMATION);
 
             FXMLLoader loader = new FXMLLoader(getClass().getResource("menu-view.fxml"));
@@ -67,6 +77,8 @@ public class LoginController {
         } else {
             showMenssage("Email ou senha invalidos.", Alert.AlertType.ERROR);
         }
+
+        connection.disconnect();
     }
 
     public static void showMenssage(String mensagem, Alert.AlertType tipo) {
@@ -82,5 +94,25 @@ public class LoginController {
         return value
                 .replace("\\", "\\\\")
                 .replace("\"", "\\\"");
+    }
+
+    private static String readResponseBody(InputStream inputStream) throws IOException {
+        return new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+    }
+
+    private static String extractToken(String responseBody) {
+        String marker = "\"token\":\"";
+        int start = responseBody.indexOf(marker);
+        if (start < 0) {
+            return null;
+        }
+
+        int tokenStart = start + marker.length();
+        int tokenEnd = responseBody.indexOf('"', tokenStart);
+        if (tokenEnd < 0) {
+            return null;
+        }
+
+        return responseBody.substring(tokenStart, tokenEnd);
     }
 }
