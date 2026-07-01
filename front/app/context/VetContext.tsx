@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useAuth } from './AuthContext';
+import { listarPets, criarPet, atualizarPet, excluirPet } from '../services/petService';
 
 // Type Definitions
 export interface Veterinarian {
@@ -69,9 +70,9 @@ interface VetContextType {
   updateTutor: (id: string, data: Partial<Tutor>) => void;
   deleteTutor: (id: string) => void;
   pets: Pet[];
-  addPet: (pet: Pet) => void;
-  updatePet: (id: string, data: Partial<Pet>) => void;
-  deletePet: (id: string) => void;
+  addPet: (pet: Pet) => Promise<Pet>;
+  updatePet: (id: string, data: Partial<Pet>) => Promise<Pet>;
+  deletePet: (id: string) => Promise<void>;
   appointments: Appointment[];
   addAppointment: (appointment: Appointment) => void;
   updateAppointment: (id: string, data: Partial<Appointment>) => void;
@@ -92,8 +93,10 @@ export function VetProvider({ children }: { children: ReactNode }) {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [consultations, setConsultations] = useState<Consultation[]>([]);
 
-  // Load tutors and pets when auth vet changes (login, hydrate, logout)
+  // Load pets from API when auth vet changes (login, hydrate, logout)
   useEffect(() => {
+    let cancelled = false;
+
     if (!currentVet) {
       setTutors([]);
       setPets([]);
@@ -102,42 +105,26 @@ export function VetProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    if (typeof window === 'undefined') return;
-
     setTutors([]);
 
-    if (currentVet.email === 'maria@vetcare.com') {
-      const defaultPets = [
-        { id: 'pet1', vetId: currentVet.id, tutorId: 'tutor1', name: 'Fofinho de Neve', species: 'Cão', breed: 'Lulu da Pomerânia', age: 2, weight: 2, createdAt: new Date() },
-        { id: 'pet2', vetId: currentVet.id, tutorId: 'tutor2', name: 'Churrasquinho', species: 'Cão', breed: 'Vira-lata Caramelo', age: 5, weight: 12, createdAt: new Date() },
-        { id: 'pet3', vetId: currentVet.id, tutorId: 'tutor3', name: 'Louro José II', species: 'Ave', breed: 'Papagaio-verdadeiro', age: 1, weight: 1, createdAt: new Date() },
-        { id: 'pet4', vetId: currentVet.id, tutorId: 'tutor4', name: 'Mbappé', species: 'Cão', breed: 'Bulldog Francês (corre muito)', age: 3, weight: 25, createdAt: new Date() },
-        { id: 'pet6', vetId: currentVet.id, tutorId: 'tutor6', name: 'Piripiri', species: 'Cão', breed: 'Poodle Gigante', age: 10, weight: 4.2, createdAt: new Date() },
-        { id: 'pet7', vetId: currentVet.id, tutorId: 'tutor7', name: 'Joe', species: 'Cão', breed: 'Labrador', age: 7, weight: 10, createdAt: new Date() },
-      ];
-      setPets(defaultPets);
-      localStorage.setItem(`vetcare_pets_${currentVet.id}`, JSON.stringify(defaultPets));
-      return;
-    }
-    const storedPets = localStorage.getItem(`vetcare_pets_${currentVet.id}`);
-
-    if (storedPets) {
+    (async () => {
       try {
-        setPets(JSON.parse(storedPets));
+        const petsApi = await listarPets(currentVet.id);
+        if (!cancelled) {
+          setPets(petsApi);
+        }
       } catch {
-        setPets([]);
+        if (!cancelled) {
+          setPets([]);
+        }
       }
-    } else {
-      setPets([]);
-    }
-  }, [currentVet]);
 
-  // Sync tutors and pets to localStorage whenever changed
-  useEffect(() => {
-    if (currentVet && typeof window !== 'undefined') {
-      localStorage.setItem(`vetcare_pets_${currentVet.id}`, JSON.stringify(pets));
-    }
-  }, [pets, currentVet]);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [currentVet]);
 
   const addTutor = (tutor: Tutor) => {
     if (currentVet) {
@@ -154,37 +141,52 @@ export function VetProvider({ children }: { children: ReactNode }) {
     setTutors(prev => prev.filter(t => t.id !== id));
   };
 
-  const addPet = (pet: Pet) => {
-    if (currentVet) {
-      pet.vetId = currentVet.id;
-      setPets(prev => {
-        const updated = [...prev, pet];
-        if (typeof window !== 'undefined') {
-          localStorage.setItem(`vetcare_pets_${currentVet.id}`, JSON.stringify(updated));
-        }
-        return updated;
-      });
+  const addPet = async (pet: Pet): Promise<Pet> => {
+    if (!currentVet) {
+      throw new Error('Veterinario nao autenticado.');
     }
+
+    const criado = await criarPet(currentVet.id, {
+      tutorId: pet.tutorId,
+      nome: pet.name,
+      especie: pet.species,
+      raca: pet.breed,
+      idade: pet.age,
+      peso: pet.weight,
+    });
+
+    setPets(prev => [...prev, criado]);
+    return criado;
   };
 
-  const updatePet = (id: string, data: Partial<Pet>) => {
-    setPets(prev => {
-      const updated = prev.map(p => (p.id === id ? { ...p, ...data } : p));
-      if (currentVet && typeof window !== 'undefined') {
-        localStorage.setItem(`vetcare_pets_${currentVet.id}`, JSON.stringify(updated));
-      }
-      return updated;
+  const updatePet = async (id: string, data: Partial<Pet>): Promise<Pet> => {
+    if (!currentVet) {
+      throw new Error('Veterinario nao autenticado.');
+    }
+
+    const existente = pets.find((item) => item.id === id);
+    const tutorId = data.tutorId ?? existente?.tutorId;
+
+    if (!tutorId) {
+      throw new Error('Tutor do pet nao informado.');
+    }
+
+    const atualizado = await atualizarPet(currentVet.id, Number(id), {
+      tutorId,
+      nome: data.name ?? existente?.name,
+      especie: data.species ?? existente?.species,
+      raca: data.breed ?? existente?.breed,
+      idade: data.age ?? existente?.age,
+      peso: data.weight ?? existente?.weight,
     });
+
+    setPets(prev => prev.map(p => (p.id === id ? atualizado : p)));
+    return atualizado;
   };
 
-  const deletePet = (id: string) => {
-    setPets(prev => {
-      const updated = prev.filter(p => p.id !== id);
-      if (currentVet && typeof window !== 'undefined') {
-        localStorage.setItem(`vetcare_pets_${currentVet.id}`, JSON.stringify(updated));
-      }
-      return updated;
-    });
+  const deletePet = async (id: string): Promise<void> => {
+    await excluirPet(Number(id));
+    setPets(prev => prev.filter(p => p.id !== id));
   };
 
   const addAppointment = (appointment: Appointment) => {

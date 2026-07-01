@@ -57,4 +57,13 @@ public class PetController {
         petRepository.save(petBanco);
         return ResponseEntity.ok("Atualizado com sucesso!");
     }
+
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Excluir pet", description = "Remove um pet pelo identificador informado.")
+    public ResponseEntity<?> excluir(@PathVariable Long id) {
+        var existe = petRepository.existsById(id);
+        if (!existe) return ResponseEntity.notFound().build();
+        petRepository.deleteById(id);
+        return ResponseEntity.ok("Removido com sucesso!");
+    }
 }

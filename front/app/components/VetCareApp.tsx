@@ -32,24 +32,6 @@ interface VeterinarioApi {
   email: string;
 }
 
-// Mock data for testing
-const MOCK_VETERINARIANS = [
-  {
-    id: '1',
-    name: 'Dr. Ricardo Silva',
-    email: 'ricardo@vetcare.com',
-    crmv: 'CRMV-SP 12345',
-    phone: '(11) 98765-4321',
-  },
-  {
-    id: '2',
-    name: 'Dra. Maria Santos',
-    email: 'maria@vetcare.com',
-    crmv: 'CRMV-SP 67890',
-    phone: '(11) 91234-5678',
-  },
-];
-
 interface CalendarViewProps {
   appointments: Appointment[];
   pets: Pet[];
@@ -534,7 +516,7 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda' }) =>
     setTutorPhoto('');
   };
 
-  const handleAddPet = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleAddPet = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     skipDraftSaveRef.current.pet = true;
     limparRascunho('pet', editingPetId ?? null);
@@ -550,13 +532,19 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda' }) =>
       photo: petPhoto || undefined,
       createdAt: new Date(),
     };
-    if (editingPetId) {
-      updatePet(editingPetId, petData);
-      setNotifications([...notifications, { id: Date.now().toString(), message: `Pet "${petData.name}" atualizado com sucesso`, type: 'edicao' }]);
-    } else {
-      addPet(petData);
-      setNotifications([...notifications, { id: Date.now().toString(), message: `Pet "${petData.name}" cadastrado com sucesso`, type: 'cadastro' }]);
+    try {
+      if (editingPetId) {
+        await updatePet(editingPetId, petData);
+        setNotifications([...notifications, { id: Date.now().toString(), message: `Pet "${petData.name}" atualizado com sucesso`, type: 'edicao' }]);
+      } else {
+        await addPet(petData);
+        setNotifications([...notifications, { id: Date.now().toString(), message: `Pet "${petData.name}" cadastrado com sucesso`, type: 'cadastro' }]);
+      }
+    } catch {
+      showToast('Nao foi possivel salvar o pet.');
+      return;
     }
+
     setHasUnread(true);
     showToast(editingPetId ? 'Pet atualizado com sucesso!' : 'Pet cadastrado com sucesso!');
     setPetForm(emptyDraftByKind('pet'));
@@ -641,7 +629,7 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda' }) =>
         await handleDeleteTutor(id);
         break;
       case 'pet':
-        handleDeletePet(id);
+        await handleDeletePet(id);
         break;
       case 'appointment':
         handleDeleteAppointment(id);
@@ -670,9 +658,15 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda' }) =>
     showToast('Tutor removido com sucesso!');
   };
 
-  const handleDeletePet = (id: string) => {
+  const handleDeletePet = async (id: string) => {
     const pet = pets.find(p => p.id === id);
-    deletePet(id);
+    try {
+      await deletePet(id);
+    } catch {
+      showToast('Nao foi possivel remover o pet.');
+      return;
+    }
+
     if (pet) {
       setNotifications([...notifications, { id: Date.now().toString(), message: `Pet "${pet.name}" removido`, type: 'cancelamento' }]);
       setHasUnread(true);
@@ -1383,26 +1377,13 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda' }) =>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4">
                 <div className="modern-card rounded-xl p-5 border border-slate-200">
                   <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Veterinário logado</p>
                   <h3 className="text-xl font-bold text-slate-900">{currentVet.name}</h3>
                   <p className="text-sm text-slate-500 mt-1">{currentVet.email}</p>
                   <p className="text-sm text-slate-600 mt-2"><strong>CRMV:</strong> {currentVet.crmv}</p>
                   <p className="text-sm text-slate-600"><strong>Telefone:</strong> {currentVet.phone || 'Não informado'}</p>
-                </div>
-
-                <div className="modern-card rounded-xl p-5 border border-slate-200">
-                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Equipe (mock)</p>
-                  <div className="space-y-3">
-                    {MOCK_VETERINARIANS.map((vet) => (
-                      <div key={vet.id} className="p-3 bg-slate-50 rounded-lg border border-slate-200">
-                        <p className="font-semibold text-slate-800">{vet.name}</p>
-                        <p className="text-xs text-slate-500">{vet.email}</p>
-                        <p className="text-xs text-slate-600">{vet.crmv}</p>
-                      </div>
-                    ))}
-                  </div>
                 </div>
               </div>
             </section>
