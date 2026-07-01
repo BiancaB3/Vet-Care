@@ -1,3 +1,6 @@
-//export const pets = [
- // { id: 1, nome: 'Rex', especie: 'Cachorro', tutor: 'Maria' },
-];//
+export const pets: Array<{
+	id: number;
+	nome: string;
+	especie: string;
+	tutor: string;
+}> = [];

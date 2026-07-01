@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   Mail, Lock, Bell, LogOut, Calendar, Users, Dog, ClipboardList,
   Plus, Search, X, TrendingUp, CalendarX, User, CheckCircle,
@@ -195,7 +196,12 @@ const CalendarView: React.FC<CalendarViewProps> = ({ appointments, pets, onDelet
 
 const emptyAppointmentForm = (): AppointmentDraft => emptyDraftByKind('appointment');
 
-const VetCareApp: React.FC = () => {
+type VetCareAppProps = {
+  initialSection?: 'agenda' | 'tutores' | 'pets' | 'prontuarios' | 'veterinarios';
+};
+
+const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda' }) => {
+  const router = useRouter();
   const { currentVet, login, logout, tutors, addTutor, updateTutor, deleteTutor, pets, addPet, updatePet, deletePet, appointments, addAppointment, updateAppointment, deleteAppointment, updateAppointmentStatus, consultations, addConsultation, updateConsultation, deleteConsultation } = useVet();
   const { getDraft, salvarProgresso, limparRascunho, temRascunho } = useDraft();
   const dispatch = useDispatch();
@@ -207,7 +213,7 @@ const VetCareApp: React.FC = () => {
   });
 
   const [screen, setScreen] = useState<'login' | 'register' | 'forgot' | 'dashboard'>('login');
-  const [activeSection, setActiveSection] = useState('agenda');
+  const [activeSection, setActiveSection] = useState<string>(initialSection);
   const [isModalOpen, setIsModalOpen] = useState<string | null>(null);
   // Inserir tutores mockados após login de maria@vetcare.com
   useEffect(() => {
@@ -261,6 +267,10 @@ const VetCareApp: React.FC = () => {
   const [appointmentForm, setAppointmentForm] = useState<AppointmentDraft>(emptyAppointmentForm());
   const [petForm, setPetForm] = useState<PetDraft>(() => emptyDraftByKind('pet'));
   const [consultationForm, setConsultationForm] = useState<ConsultationDraft>(() => emptyDraftByKind('consultation'));
+
+  useEffect(() => {
+    setActiveSection(initialSection);
+  }, [initialSection]);
 
   const showToast = (message: string) => {
     setToast({ message, show: true });
@@ -322,6 +332,7 @@ const VetCareApp: React.FC = () => {
       setScreen('dashboard');
       setLoginForm({ email: '', password: '' });
       showToast('Login realizado com sucesso!');
+      router.push('/home');
     } catch (error: any) {
       const mensagem =
         error?.response?.data && typeof error.response.data === 'string'
@@ -977,6 +988,7 @@ const VetCareApp: React.FC = () => {
               { id: 'agenda', icon: <Calendar className="w-5 h-5" />, label: 'Agenda' },
               { id: 'tutores', icon: <Users className="w-5 h-5" />, label: 'Tutores' },
               { id: 'pets', icon: <Dog className="w-5 h-5" />, label: 'Pets' },
+              { id: 'veterinarios', icon: <User className="w-5 h-5" />, label: 'Veterinários' },
               { id: 'prontuarios', icon: <ClipboardList className="w-5 h-5" />, label: 'Prontuarios' },
             ].map((item) => (
               <button
@@ -1340,6 +1352,40 @@ const VetCareApp: React.FC = () => {
                     })}
                 </div>
               )}
+            </section>
+          )}
+
+          {activeSection === 'veterinarios' && (
+            <section>
+              <div className="flex items-center justify-between mb-8">
+                <div>
+                  <h2 className="text-3xl font-bold text-primary">Veterinários</h2>
+                  <p className="text-slate-400 mt-2">Perfil e profissionais vinculados</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="modern-card rounded-xl p-5 border border-slate-200">
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Veterinário logado</p>
+                  <h3 className="text-xl font-bold text-slate-900">{currentVet.name}</h3>
+                  <p className="text-sm text-slate-500 mt-1">{currentVet.email}</p>
+                  <p className="text-sm text-slate-600 mt-2"><strong>CRMV:</strong> {currentVet.crmv}</p>
+                  <p className="text-sm text-slate-600"><strong>Telefone:</strong> {currentVet.phone || 'Não informado'}</p>
+                </div>
+
+                <div className="modern-card rounded-xl p-5 border border-slate-200">
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Equipe (mock)</p>
+                  <div className="space-y-3">
+                    {MOCK_VETERINARIANS.map((vet) => (
+                      <div key={vet.id} className="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                        <p className="font-semibold text-slate-800">{vet.name}</p>
+                        <p className="text-xs text-slate-500">{vet.email}</p>
+                        <p className="text-xs text-slate-600">{vet.crmv}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
             </section>
           )}
         </main>

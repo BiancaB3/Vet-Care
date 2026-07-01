@@ -1,3 +1,6 @@
-//export const agendamentos = [
- // { id: 1, pet: 'Rex', veterinario: 'Dr. João', data: '2026-04-07' },
-];//
+export const agendamentos: Array<{
+	id: number;
+	pet: string;
+	veterinario: string;
+	data: string;
+}> = [];

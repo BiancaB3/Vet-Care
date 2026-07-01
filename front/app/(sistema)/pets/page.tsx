@@ -1,4 +1,5 @@
+import VetCareApp from '../../components/VetCareApp';
 
 export default function Page() {
-  return <main className="p-4">Pets</main>;
+  return <VetCareApp initialSection="pets" />;
 }
