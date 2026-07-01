@@ -77,15 +77,57 @@ public class TutorController {
             return ResponseEntity.badRequest().body("Email do tutor e obrigatorio.");
         }
 
-        if (tutor.getCpf() == null || !tutor.getCpf().matches("\\d{3}\\.\\d{3}\\.\\d{3}-\\d{2}")) {
-            return ResponseEntity.badRequest().body("CPF invalido. Use o formato 000.000.000-00.");
+        if (!cpfValido(tutor.getCpf())) {
+            return ResponseEntity.badRequest().body("CPF invalido. Informe um CPF valido com 11 digitos.");
         }
 
-        if (tutor.getCep() == null || !tutor.getCep().matches("\\d{5}-\\d{3}")) {
-            return ResponseEntity.badRequest().body("CEP invalido. Use o formato 00000-000.");
+        if (!cepValido(tutor.getCep())) {
+            return ResponseEntity.badRequest().body("CEP invalido. Informe um CEP valido com 8 digitos.");
         }
 
         return null;
+    }
+
+    private boolean cpfValido(String cpf) {
+        if (cpf == null) {
+            return false;
+        }
+
+        String cpfNormalizado = cpf.replaceAll("\\D", "");
+        if (!cpfNormalizado.matches("\\d{11}") || cpfNormalizado.matches("(\\d)\\1{10}")) {
+            return false;
+        }
+
+        int soma = 0;
+        for (int i = 0; i < 9; i++) {
+            soma += Character.getNumericValue(cpfNormalizado.charAt(i)) * (10 - i);
+        }
+        int resto = (soma * 10) % 11;
+        if (resto == 10) {
+            resto = 0;
+        }
+        if (resto != Character.getNumericValue(cpfNormalizado.charAt(9))) {
+            return false;
+        }
+
+        soma = 0;
+        for (int i = 0; i < 10; i++) {
+            soma += Character.getNumericValue(cpfNormalizado.charAt(i)) * (11 - i);
+        }
+        resto = (soma * 10) % 11;
+        if (resto == 10) {
+            resto = 0;
+        }
+
+        return resto == Character.getNumericValue(cpfNormalizado.charAt(10));
+    }
+
+    private boolean cepValido(String cep) {
+        if (cep == null) {
+            return false;
+        }
+
+        return cep.replaceAll("\\D", "").matches("\\d{8}");
     }
 
     @DeleteMapping("/{id}")

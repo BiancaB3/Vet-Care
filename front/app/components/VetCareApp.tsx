@@ -20,7 +20,7 @@ import {
 } from '../context/DraftContext';
 import api from '../services/api';
 import { loginService } from '../services/authService';
-import { listarTutores, criarTutor, atualizarTutor, excluirTutor } from '../services/tutorService';
+import { listarTutores, criarTutor, atualizarTutor, excluirTutor, buscarEnderecoPorCep } from '../services/tutorService';
 import { setToken, setUsuario } from '../redux/slices/authSlice';
 
 interface VeterinarioApi {
@@ -245,7 +245,18 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda' }) =>
   const [registerForm, setRegisterForm] = useState({ name: '', crmv: '', email: '', password: '', phone: '' });
   const [forgotForm, setForgotForm] = useState({ email: '' });
   const [forgotSuccess, setForgotSuccess] = useState(false);
-  const [tutorForm, setTutorForm] = useState({ name: '', email: '', phone: '', cpf: '', cep: '' });
+  const [tutorForm, setTutorForm] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    cpf: '',
+    cep: '',
+    street: '',
+    district: '',
+    city: '',
+    state: '',
+  });
+  const [isCepLoading, setIsCepLoading] = useState(false);
   const [tutorPhoto, setTutorPhoto] = useState<string>('');
   const [petPhoto, setPetPhoto] = useState<string>('');
   const [appointmentForm, setAppointmentForm] = useState<AppointmentDraft>(emptyAppointmentForm());
@@ -281,6 +292,86 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda' }) =>
     const digits = value.replace(/\D/g, '').slice(0, 8);
     if (digits.length <= 5) return digits;
     return `${digits.slice(0, 5)}-${digits.slice(5)}`;
+  };
+
+  const onlyDigits = (value: string) => value.replace(/\D/g, '');
+
+  const isCpfValido = (value: string) => {
+    const cpf = onlyDigits(value);
+    if (cpf.length !== 11) return false;
+    if (/^(\d)\1{10}$/.test(cpf)) return false;
+
+    let soma = 0;
+    for (let i = 0; i < 9; i += 1) {
+      soma += Number(cpf[i]) * (10 - i);
+    }
+    let resto = (soma * 10) % 11;
+    if (resto === 10) resto = 0;
+    if (resto !== Number(cpf[9])) return false;
+
+    soma = 0;
+    for (let i = 0; i < 10; i += 1) {
+      soma += Number(cpf[i]) * (11 - i);
+    }
+    resto = (soma * 10) % 11;
+    if (resto === 10) resto = 0;
+
+    return resto === Number(cpf[10]);
+  };
+
+  const parseEndereco = (endereco: string) => {
+    if (!endereco) {
+      return { street: '', district: '', city: '', state: '' };
+    }
+
+    const partes = endereco.split(' - ');
+    const cidadeUf = partes[2] ?? '';
+    const [city, state] = cidadeUf.split('/');
+
+    return {
+      street: partes[0] ?? '',
+      district: partes[1] ?? '',
+      city: city ?? '',
+      state: state ?? '',
+    };
+  };
+
+  const buildEndereco = () => {
+    const street = tutorForm.street.trim();
+    const district = tutorForm.district.trim();
+    const city = tutorForm.city.trim();
+    const state = tutorForm.state.trim();
+
+    const base = [street, district, `${city}${state ? `/${state}` : ''}`]
+      .map((item) => item.trim())
+      .filter((item) => item.length > 0);
+
+    return base.join(' - ');
+  };
+
+  const preencherEnderecoPorCep = async (cepValue: string) => {
+    const cepNormalizado = onlyDigits(cepValue);
+    if (cepNormalizado.length !== 8) {
+      return;
+    }
+
+    setIsCepLoading(true);
+    try {
+      const endereco = await buscarEnderecoPorCep(cepNormalizado);
+      setTutorForm((prev) => ({
+        ...prev,
+        cep: formatCep(cepNormalizado),
+        street: endereco.logradouro ?? '',
+        district: endereco.bairro ?? '',
+        city: endereco.localidade ?? '',
+        state: endereco.uf ?? '',
+      }));
+    } catch (error) {
+      console.error('Nao foi possivel consultar o CEP informado.', error);
+      showToast('Nao foi possivel consultar o CEP informado.');
+    } finally {
+      setIsCepLoading(false);
+    }
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -375,17 +466,17 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda' }) =>
       setEditingTutorId(id);
       if (temRascunho('tutor', id)) {
         const d = getDraft('tutor', id);
-        if (d) setTutorForm({ name: d.name, email: d.email, phone: d.phone, cpf: d.cpf, cep: d.cep });
+        if (d) setTutorForm({ name: d.name, email: d.email, phone: d.phone, cpf: d.cpf, cep: d.cep, street: '', district: '', city: '', state: '' });
       } else if (id) {
         const tutor = currentVetTutors.find((t) => t.id === id);
         setTutorForm(
           tutor
-            ? { name: tutor.name, email: tutor.email, phone: tutor.phone, cpf: tutor.cpf ?? '', cep: tutor.cep ?? '' }
-            : { name: '', email: '', phone: '', cpf: '', cep: '' }
+            ? { name: tutor.name, email: tutor.email, phone: tutor.phone, cpf: tutor.cpf ?? '', cep: tutor.cep ?? '', ...parseEndereco(tutor.endereco ?? '') }
+            : { name: '', email: '', phone: '', cpf: '', cep: '', street: '', district: '', city: '', state: '' }
         );
         setTutorPhoto(tutor?.photo ?? '');
       } else {
-        setTutorForm({ name: '', email: '', phone: '', cpf: '', cep: '' });
+        setTutorForm({ name: '', email: '', phone: '', cpf: '', cep: '', street: '', district: '', city: '', state: '' });
         setTutorPhoto('');
       }
     } else if (type === 'pet') {
@@ -495,18 +586,26 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda' }) =>
     e.preventDefault();
     skipDraftSaveRef.current.tutor = true;
     limparRascunho('tutor', editingTutorId ?? null);
-    const cpfValido = /^\d{3}\.\d{3}\.\d{3}-\d{2}$/.test(tutorForm.cpf);
-    const cepValido = /^\d{5}-\d{3}$/.test(tutorForm.cep);
+    const cpfNormalizado = onlyDigits(tutorForm.cpf);
+    const cepNormalizado = onlyDigits(tutorForm.cep);
+    const cepValido = cepNormalizado.length === 8;
 
-    if (!cpfValido) {
-      showToast('CPF invalido. Use o formato 000.000.000-00.');
+    if (!isCpfValido(cpfNormalizado)) {
+      showToast('CPF invalido. Informe um CPF valido com 11 digitos.');
       return;
     }
 
     if (!cepValido) {
-      showToast('CEP invalido. Use o formato 00000-000.');
+      showToast('CEP invalido. Informe um CEP valido com 8 digitos.');
       return;
     }
+
+    if (!tutorForm.street.trim() || !tutorForm.district.trim() || !tutorForm.city.trim() || !tutorForm.state.trim()) {
+      showToast('Busque um CEP valido para preencher o endereco do tutor.');
+      return;
+    }
+
+    const endereco = buildEndereco();
 
     try {
       if (editingTutorId) {
@@ -514,9 +613,9 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda' }) =>
           nome: tutorForm.name,
           email: tutorForm.email,
           telefone: tutorForm.phone,
-          cpf: tutorForm.cpf,
-          cep: tutorForm.cep,
-          endereco: tutorForm.cep,
+          cpf: cpfNormalizado,
+          cep: cepNormalizado,
+          endereco,
           status: 'ATIVO',
         });
         setApiTutors((prev) => prev.map((item) => (item.id === editingTutorId ? tutorAtualizado : item)));
@@ -528,9 +627,9 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda' }) =>
           nome: tutorForm.name,
           email: tutorForm.email,
           telefone: tutorForm.phone,
-          cpf: tutorForm.cpf,
-          cep: tutorForm.cep,
-          endereco: tutorForm.cep,
+          cpf: cpfNormalizado,
+          cep: cepNormalizado,
+          endereco,
           status: 'ATIVO',
         });
         setApiTutors((prev) => [...prev, tutorCriado]);
@@ -545,7 +644,7 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda' }) =>
 
     closeModal();
     setEditingTutorId(null);
-    setTutorForm({ name: '', email: '', phone: '', cpf: '', cep: '' });
+    setTutorForm({ name: '', email: '', phone: '', cpf: '', cep: '', street: '', district: '', city: '', state: '' });
     setTutorPhoto('');
   };
 
@@ -1456,11 +1555,11 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda' }) =>
                           const tutor = currentVetTutors.find((t) => t.id === editingTutorId);
                           setTutorForm(
                             tutor
-                              ? { name: tutor.name, email: tutor.email, phone: tutor.phone, cpf: tutor.cpf ?? '', cep: tutor.cep ?? '' }
-                              : { name: '', email: '', phone: '', cpf: '', cep: '' }
+                              ? { name: tutor.name, email: tutor.email, phone: tutor.phone, cpf: tutor.cpf ?? '', cep: tutor.cep ?? '', ...parseEndereco(tutor.endereco ?? '') }
+                              : { name: '', email: '', phone: '', cpf: '', cep: '', street: '', district: '', city: '', state: '' }
                           );
                         } else {
-                          setTutorForm({ name: '', email: '', phone: '', cpf: '', cep: '' });
+                          setTutorForm({ name: '', email: '', phone: '', cpf: '', cep: '', street: '', district: '', city: '', state: '' });
                         }
                       }}
                       className="shrink-0 px-3 py-1.5 font-semibold rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-900"
@@ -1522,13 +1621,34 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda' }) =>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 mb-2">CPF</label>
-                    <input type="text" value={tutorForm.cpf} onChange={(e) => setTutorForm({ ...tutorForm, cpf: formatCpf(e.target.value) })} placeholder="000.000.000-00" required className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium" />
+                    <input type="text" value={tutorForm.cpf} onChange={(e) => setTutorForm({ ...tutorForm, cpf: formatCpf(e.target.value) })} placeholder="000.000.000-00 ou 00000000000" required className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium" />
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 mb-2">CEP</label>
-                    <input type="text" value={tutorForm.cep} onChange={(e) => setTutorForm({ ...tutorForm, cep: formatCep(e.target.value) })} placeholder="00000-000" required className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium" />
+                    <input type="text" value={tutorForm.cep} onChange={(e) => setTutorForm({ ...tutorForm, cep: formatCep(e.target.value) })} onBlur={() => void preencherEnderecoPorCep(tutorForm.cep)} placeholder="00000-000 ou 00000000" required className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium" />
                   </div>
                 </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">Rua</label>
+                    <input type="text" value={tutorForm.street} onChange={(e) => setTutorForm({ ...tutorForm, street: e.target.value })} placeholder="Rua" required className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">Bairro</label>
+                    <input type="text" value={tutorForm.district} onChange={(e) => setTutorForm({ ...tutorForm, district: e.target.value })} placeholder="Bairro" required className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">Cidade</label>
+                    <input type="text" value={tutorForm.city} onChange={(e) => setTutorForm({ ...tutorForm, city: e.target.value })} placeholder="Cidade" required className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">UF</label>
+                    <input type="text" value={tutorForm.state} onChange={(e) => setTutorForm({ ...tutorForm, state: e.target.value.toUpperCase().slice(0, 2) })} placeholder="UF" required maxLength={2} className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary font-medium uppercase" />
+                  </div>
+                </div>
+                {isCepLoading && <p className="text-sm text-slate-500">Buscando endereco pelo CEP...</p>}
                 <div className="flex gap-3 pt-4">
                   <button type="button" onClick={closeModal} className="flex-1 px-4 py-3 border-2 text-slate-700 font-bold rounded-xl hover:bg-slate-100">
                     Cancelar

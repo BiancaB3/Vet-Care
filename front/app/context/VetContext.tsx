@@ -21,6 +21,7 @@ export interface Tutor {
   phone: string;
   cpf?: string;
   cep?: string;
+  endereco?: string;
   photo?: string;
   createdAt: Date;
 }

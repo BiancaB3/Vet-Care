@@ -12,6 +12,15 @@ type TutorApi = {
   status?: string | null;
 };
 
+type EnderecoApi = {
+  cep: string;
+  logradouro: string;
+  complemento: string;
+  bairro: string;
+  localidade: string;
+  uf: string;
+};
+
 type TutorPayload = {
   nome: string;
   email: string;
@@ -31,6 +40,7 @@ function toTutorModel(item: TutorApi): Tutor {
     phone: item.telefone,
     cpf: item.cpf ?? '',
     cep: item.cep ?? '',
+    endereco: item.endereco ?? '',
     createdAt: new Date(),
   };
 }
@@ -54,4 +64,9 @@ export async function atualizarTutor(id: number, payload: TutorPayload): Promise
 
 export async function excluirTutor(id: number): Promise<void> {
   await api.delete(`/tutores/${id}`);
+}
+
+export async function buscarEnderecoPorCep(cep: string): Promise<EnderecoApi> {
+  const response = await api.get<EnderecoApi>(`/api/enderecos/${cep}`);
+  return response.data;
 }
