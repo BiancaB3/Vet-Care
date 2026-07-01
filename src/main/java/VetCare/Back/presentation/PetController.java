@@ -13,24 +13,26 @@ import java.util.List;
 @RestController
 @RequestMapping("/pets")
 @CrossOrigin(origins = "*", maxAge = 3600)
-@Tag(name = "Pets controller", description = "Controladora responsável por gerenciar os pets!")
+@Tag(name = "Pets", description = "Endpoints para gerenciamento dos pets do VetCare.")
 public class PetController {
 
     @Autowired private PetRepository petRepository;
     @Autowired private TutorRepository tutorRepository;
 
     @GetMapping
-    @Operation(summary = "Listar todos", description = "Método para listar todos os pets!")
+    @Operation(summary = "Listar pets", description = "Retorna a lista de pets cadastrados.")
     public ResponseEntity<List<Pet>> listarTodos() { return ResponseEntity.ok(petRepository.findAll()); }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Consulta por ID", description = "Método responsável por consultar um único pet por ID!")
+    @Operation(summary = "Buscar pet por id", description = "Retorna um pet pelo identificador informado.")
     public ResponseEntity<Pet> buscarPorId(@PathVariable Long id) {
-        return ResponseEntity.ok(petRepository.findById(id).orElse(null));
+        return petRepository.findById(id)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    @Operation(summary = "Criar pet", description = "Método responsável por criar um pet!")
+    @Operation(summary = "Cadastrar pet", description = "Cadastra um novo pet no sistema.")
     public ResponseEntity<?> salvar(@RequestBody Pet pet) {
         if (pet.getTutor() == null || pet.getTutor().getId() == null)
             return ResponseEntity.badRequest().body("Informe tutor.id para salvar o pet.");
@@ -41,7 +43,7 @@ public class PetController {
     }
 
     @PutMapping("/{id}")
-    @Operation(summary = "Atualizar pet", description = "Método responsável por atualizar um pet!")
+    @Operation(summary = "Atualizar pet", description = "Atualiza os dados de um pet existente.")
     public ResponseEntity<?> atualizar(@PathVariable Long id, @RequestBody Pet pet) {
         var petBanco = petRepository.findById(id).orElse(null);
         if (petBanco == null) return ResponseEntity.notFound().build();
@@ -55,13 +57,5 @@ public class PetController {
         petBanco.setCor(pet.getCor()); petBanco.setTutor(tutor);
         petRepository.save(petBanco);
         return ResponseEntity.ok("Atualizado com sucesso!");
-    }
-
-    @DeleteMapping("/{id}")
-    @Operation(summary = "Deletar pet", description = "Método responsável por deletar um pet!")
-    public ResponseEntity<?> deletar(@PathVariable Long id) {
-        if (!petRepository.existsById(id)) return ResponseEntity.notFound().build();
-        petRepository.deleteById(id);
-        return ResponseEntity.ok("Deletado com sucesso!");
     }
 }

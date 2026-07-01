@@ -15,7 +15,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/agendamentos")
 @CrossOrigin(origins = "*", maxAge = 3600)
-@Tag(name = "Agendamentos controller", description = "Controladora responsável por gerenciar os agendamentos!")
+@Tag(name = "Agendamentos", description = "Endpoints para gerenciamento dos agendamentos do VetCare.")
 public class AgendamentoController {
 
     @Autowired
@@ -28,20 +28,20 @@ public class AgendamentoController {
     private VeterinarioRepository veterinarioRepository;
 
     @GetMapping
-    @Operation(summary = "Listar todos", description = "Método para listar todos os agendamentos!")
+    @Operation(summary = "Listar agendamentos", description = "Retorna a lista de agendamentos cadastrados.")
     public ResponseEntity<List<Agendamento>> listarTodos() {
         return ResponseEntity.ok(agendamentoRepository.findAll());
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Consulta por ID", description = "Método responsável por consultar um único agendamento por ID!")
+    @Operation(summary = "Buscar agendamento por id", description = "Retorna um agendamento pelo identificador informado.")
     public ResponseEntity<Agendamento> buscarPorId(@PathVariable Long id) {
         var agendamento = agendamentoRepository.findById(id);
         return agendamento.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    @Operation(summary = "Criar agendamento", description = "Método responsável por criar um agendamento!")
+    @Operation(summary = "Cadastrar agendamento", description = "Cadastra um novo agendamento no sistema.")
     public ResponseEntity<?> salvar(@RequestBody Agendamento agendamento) {
         if (agendamento.getPet() == null || agendamento.getPet().getId() == null) {
             return ResponseEntity.badRequest().body("Informe pet.id para salvar o agendamento.");
@@ -62,7 +62,7 @@ public class AgendamentoController {
     }
 
     @PutMapping("/{id}")
-    @Operation(summary = "Atualizar agendamento", description = "Método responsável por atualizar um agendamento!")
+    @Operation(summary = "Atualizar agendamento", description = "Atualiza os dados de um agendamento existente.")
     public ResponseEntity<?> atualizar(@PathVariable Long id, @RequestBody Agendamento agendamento) {
         var agendamentoBanco = agendamentoRepository.findById(id).orElse(null);
         if (agendamentoBanco == null) {
@@ -89,16 +89,6 @@ public class AgendamentoController {
         agendamentoBanco.setVeterinario(veterinario);
 
         return ResponseEntity.ok(agendamentoRepository.save(agendamentoBanco));
-    }
-
-    @DeleteMapping("/{id}")
-    @Operation(summary = "Deletar agendamento", description = "Método responsável por deletar um agendamento!")
-    public ResponseEntity<Void> deletar(@PathVariable Long id) {
-        if (!agendamentoRepository.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
-        agendamentoRepository.deleteById(id);
-        return ResponseEntity.noContent().build();
     }
 }
 

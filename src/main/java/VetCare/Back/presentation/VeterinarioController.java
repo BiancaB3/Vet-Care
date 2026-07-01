@@ -14,7 +14,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/veterinarios")
 @CrossOrigin(origins = "*", maxAge = 3600)
-@Tag(name = "Veterinarios controller", description = "Controladora responsável por gerenciar os veterinários!")
+@Tag(name = "Veterinarios", description = "Endpoints para gerenciamento dos veterinarios do VetCare.")
 public class VeterinarioController {
 
     @Autowired
@@ -24,19 +24,21 @@ public class VeterinarioController {
     private VeterinarioService veterinarioService;
 
     @GetMapping
-    @Operation(summary = "Listar todos", description = "Método para listar todos os veterinários!")
+    @Operation(summary = "Listar veterinarios", description = "Retorna a lista de veterinarios cadastrados.")
     public ResponseEntity<List<Veterinario>> listarTodos() {
         return ResponseEntity.ok(veterinarioRepository.findAll());
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Consulta por ID", description = "Método responsável por consultar um único veterinário por ID!")
+    @Operation(summary = "Buscar veterinario por id", description = "Retorna um veterinario pelo identificador informado.")
     public ResponseEntity<Veterinario> buscarPorId(@PathVariable Long id) {
-        return ResponseEntity.ok(veterinarioRepository.findById(id).orElse(null));
+        return veterinarioRepository.findById(id)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    @Operation(summary = "Criar veterinário", description = "Método responsável por criar um veterinário!")
+    @Operation(summary = "Cadastrar veterinario", description = "Cadastra um novo veterinario no sistema.")
     public ResponseEntity<Long> salvar(@RequestBody Veterinario veterinario) {
         return ResponseEntity.ok(veterinarioService.salvar(veterinario).getId());
     }
@@ -53,7 +55,7 @@ public class VeterinarioController {
     }
 
     @PutMapping("/{id}")
-    @Operation(summary = "Atualizar veterinário", description = "Método responsável por atualizar um veterinário!")
+    @Operation(summary = "Atualizar veterinario", description = "Atualiza os dados de um veterinario existente.")
     public ResponseEntity<?> atualizar(@PathVariable Long id, @RequestBody Veterinario veterinario) {
         var vetBanco = veterinarioRepository.findById(id).orElse(null);
         if (vetBanco != null) {
@@ -61,13 +63,5 @@ public class VeterinarioController {
             return ResponseEntity.ok("Atualizado com sucesso!");
         }
         return ResponseEntity.notFound().build();
-    }
-
-    @DeleteMapping("/{id}")
-    @Operation(summary = "Deletar veterinário", description = "Método responsável por deletar um veterinário!")
-    public ResponseEntity<?> deletar(@PathVariable Long id) {
-        if (!veterinarioRepository.existsById(id)) return ResponseEntity.notFound().build();
-        veterinarioRepository.deleteById(id);
-        return ResponseEntity.ok("Deletado com sucesso!");
     }
 }

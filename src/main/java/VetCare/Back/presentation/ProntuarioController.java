@@ -16,7 +16,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/prontuarios")
 @CrossOrigin(origins = "*", maxAge = 3600)
-@Tag(name = "Prontuarios controller", description = "Controladora responsável por gerenciar os prontuários!")
+@Tag(name = "Prontuarios", description = "Endpoints para gerenciamento dos prontuarios do VetCare.")
 public class ProntuarioController {
 
     @Autowired
@@ -32,20 +32,20 @@ public class ProntuarioController {
     private AgendamentoRepository agendamentoRepository;
 
     @GetMapping
-    @Operation(summary = "Listar todos", description = "Método para listar todos os prontuários!")
+    @Operation(summary = "Listar prontuarios", description = "Retorna a lista de prontuarios cadastrados.")
     public ResponseEntity<List<Prontuario>> listarTodos() {
         return ResponseEntity.ok(prontuarioRepository.findAll());
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Consulta por ID", description = "Método responsável por consultar um único prontuário por ID!")
+    @Operation(summary = "Buscar prontuario por id", description = "Retorna um prontuario pelo identificador informado.")
     public ResponseEntity<Prontuario> buscarPorId(@PathVariable Long id) {
         var prontuario = prontuarioRepository.findById(id);
         return prontuario.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    @Operation(summary = "Criar prontuário", description = "Método responsável por criar um prontuário!")
+    @Operation(summary = "Cadastrar prontuario", description = "Cadastra um novo prontuario no sistema.")
     public ResponseEntity<?> salvar(@RequestBody Prontuario prontuario) {
         if (prontuario.getPet() == null || prontuario.getPet().getId() == null) {
             return ResponseEntity.badRequest().body("Informe pet.id para salvar o prontuario.");
@@ -77,7 +77,7 @@ public class ProntuarioController {
     }
 
     @PutMapping("/{id}")
-    @Operation(summary = "Atualizar prontuário", description = "Método responsável por atualizar um prontuário!")
+    @Operation(summary = "Atualizar prontuario", description = "Atualiza os dados de um prontuario existente.")
     public ResponseEntity<?> atualizar(@PathVariable Long id, @RequestBody Prontuario prontuario) {
         var prontuarioBanco = prontuarioRepository.findById(id).orElse(null);
         if (prontuarioBanco == null) {
@@ -116,16 +116,6 @@ public class ProntuarioController {
         }
 
         return ResponseEntity.ok(prontuarioRepository.save(prontuarioBanco));
-    }
-
-    @DeleteMapping("/{id}")
-    @Operation(summary = "Deletar prontuário", description = "Método responsável por deletar um prontuário!")
-    public ResponseEntity<Void> deletar(@PathVariable Long id) {
-        if (!prontuarioRepository.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
-        prontuarioRepository.deleteById(id);
-        return ResponseEntity.noContent().build();
     }
 }
 
