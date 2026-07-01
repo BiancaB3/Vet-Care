@@ -13,7 +13,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/veterinarios")
-@CrossOrigin(origins = "*", maxAge = 3600)
 @Tag(name = "Veterinarios", description = "Endpoints para gerenciamento dos veterinarios do VetCare.")
 public class VeterinarioController {
 

@@ -9,14 +9,14 @@ import {
   useMemo,
   ReactNode,
 } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import type { Veterinarian } from './VetContext';
-
-const AUTH_TOKEN_KEY = 'vetcare_auth_token';
-const AUTH_VET_KEY = 'vetcare_auth_vet';
+import type { RootState } from '../redux/store';
+import { logout as logoutAction } from '../redux/slices/authSlice';
 
 export type AuthContextProps = {
   currentVet: Veterinarian | null;
-  token: string | null;
+  token: string;
   isAuthenticated: boolean;
   login: (vet: Veterinarian) => void;
   logout: () => void;
@@ -25,49 +25,40 @@ export type AuthContextProps = {
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const dispatch = useDispatch();
+  const usuario = useSelector((state: RootState) => state.auth.usuario);
+  const token = useSelector((state: RootState) => state.auth.token);
   const [currentVet, setCurrentVet] = useState<Veterinarian | null>(null);
-  const [token, setToken] = useState<string | null>(null);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const storedToken = localStorage.getItem(AUTH_TOKEN_KEY);
-    const storedVet = localStorage.getItem(AUTH_VET_KEY);
-    if (storedToken && storedVet) {
-      try {
-        const vet = JSON.parse(storedVet) as Veterinarian;
-        setToken(storedToken);
-        setCurrentVet(vet);
-      } catch {
-        localStorage.removeItem(AUTH_TOKEN_KEY);
-        localStorage.removeItem(AUTH_VET_KEY);
-      }
+    if (usuario == null) {
+      setCurrentVet(null);
+      return;
     }
-  }, []);
+
+    setCurrentVet({
+      id: String(usuario.id ?? ''),
+      name: usuario.nome,
+      email: usuario.email,
+      crmv: usuario.crmv ?? 'Nao informado',
+      phone: usuario.telefone ?? '',
+    });
+  }, [usuario]);
 
   const login = useCallback((vet: Veterinarian) => {
-    const newToken = `mock-${vet.id}-${Date.now()}`;
     setCurrentVet(vet);
-    setToken(newToken);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(AUTH_TOKEN_KEY, newToken);
-      localStorage.setItem(AUTH_VET_KEY, JSON.stringify(vet));
-    }
   }, []);
 
   const logout = useCallback(() => {
     setCurrentVet(null);
-    setToken(null);
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem(AUTH_TOKEN_KEY);
-      localStorage.removeItem(AUTH_VET_KEY);
-    }
-  }, []);
+    dispatch(logoutAction());
+  }, [dispatch]);
 
   const value = useMemo<AuthContextProps>(
     () => ({
       currentVet,
       token,
-      isAuthenticated: currentVet !== null && token !== null,
+      isAuthenticated: currentVet !== null && token.length > 0,
       login,
       logout,
     }),

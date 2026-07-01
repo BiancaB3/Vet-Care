@@ -6,8 +6,18 @@ import Cookies from "js-cookie";
 const usuarioRecover = Cookies.get('usuario');
 const tokenRecover = Cookies.get('token');
 
+function parseUsuarioFromCookie(raw: string | undefined): Usuario | null {
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as Usuario;
+  } catch {
+    Cookies.remove('usuario');
+    return null;
+  }
+}
+
 const initialState: AuthState = {
-  usuario: usuarioRecover ? JSON.parse(usuarioRecover) as Usuario : null,
+  usuario: parseUsuarioFromCookie(usuarioRecover),
   token: tokenRecover ?? ""
 }
 

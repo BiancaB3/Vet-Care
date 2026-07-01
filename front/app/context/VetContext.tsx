@@ -104,18 +104,9 @@ export function VetProvider({ children }: { children: ReactNode }) {
 
     if (typeof window === 'undefined') return;
 
-    // Sempre sobrescreve os dados ao logar com maria@vetcare.com
+    setTutors([]);
+
     if (currentVet.email === 'maria@vetcare.com') {
-      const defaultTutors = [
-        { id: 'tutor1', vetId: currentVet.id, name: 'Mel Maia', email: 'mel.maia@tiktok.com', phone: '(21) 99888-7766', createdAt: new Date() },
-        { id: 'tutor2', vetId: currentVet.id, name: 'Fausto Silva', email: 'loco.bicho@domingao.com', phone: '(11) 91234-5678', createdAt: new Date() },
-        { id: 'tutor3', vetId: currentVet.id, name: 'Ana Maria Braga', email: 'acorda.menina@maisvoce.com', phone: '(21) 98765-4321', createdAt: new Date() },
-        { id: 'tutor4', vetId: currentVet.id, name: 'Neymar Junior', email: 'cai.cai@menino-ney.br', phone: '(13) 91010-1010', createdAt: new Date() },
-        { id: 'tutor6', vetId: currentVet.id, name: 'Gretchen', email: 'rainha@bundinha.com', phone: '(11) 90000-0002', createdAt: new Date() },
-        { id: 'tutor7', vetId: currentVet.id, name: 'Bianca Bernardo Bez Birolo', email: 'biancabezz@icloud.com', phone: '(48) 99181-7218', createdAt: new Date() },
-      ];
-      setTutors(defaultTutors);
-      localStorage.setItem(`vetcare_tutores_${currentVet.id}`, JSON.stringify(defaultTutors));
       const defaultPets = [
         { id: 'pet1', vetId: currentVet.id, tutorId: 'tutor1', name: 'Fofinho de Neve', species: 'Cão', breed: 'Lulu da Pomerânia', age: 2, weight: 2, createdAt: new Date() },
         { id: 'pet2', vetId: currentVet.id, tutorId: 'tutor2', name: 'Churrasquinho', species: 'Cão', breed: 'Vira-lata Caramelo', age: 5, weight: 12, createdAt: new Date() },
@@ -128,18 +119,8 @@ export function VetProvider({ children }: { children: ReactNode }) {
       localStorage.setItem(`vetcare_pets_${currentVet.id}`, JSON.stringify(defaultPets));
       return;
     }
-
-    const storedTutors = localStorage.getItem(`vetcare_tutores_${currentVet.id}`);
     const storedPets = localStorage.getItem(`vetcare_pets_${currentVet.id}`);
-    if (storedTutors) {
-      try {
-        setTutors(JSON.parse(storedTutors));
-      } catch {
-        setTutors([]);
-      }
-    } else {
-      setTutors([]);
-    }
+
     if (storedPets) {
       try {
         setPets(JSON.parse(storedPets));
@@ -154,42 +135,23 @@ export function VetProvider({ children }: { children: ReactNode }) {
   // Sync tutors and pets to localStorage whenever changed
   useEffect(() => {
     if (currentVet && typeof window !== 'undefined') {
-      localStorage.setItem(`vetcare_tutores_${currentVet.id}`, JSON.stringify(tutors));
       localStorage.setItem(`vetcare_pets_${currentVet.id}`, JSON.stringify(pets));
     }
-  }, [tutors, pets, currentVet]);
+  }, [pets, currentVet]);
 
   const addTutor = (tutor: Tutor) => {
     if (currentVet) {
       tutor.vetId = currentVet.id;
-      setTutors(prev => {
-        const updated = [...prev, tutor];
-        if (typeof window !== 'undefined') {
-          localStorage.setItem(`vetcare_tutores_${currentVet.id}`, JSON.stringify(updated));
-        }
-        return updated;
-      });
+      setTutors(prev => [...prev, tutor]);
     }
   };
 
   const updateTutor = (id: string, data: Partial<Tutor>) => {
-    setTutors(prev => {
-      const updated = prev.map(t => (t.id === id ? { ...t, ...data } : t));
-      if (currentVet && typeof window !== 'undefined') {
-        localStorage.setItem(`vetcare_tutores_${currentVet.id}`, JSON.stringify(updated));
-      }
-      return updated;
-    });
+    setTutors(prev => prev.map(t => (t.id === id ? { ...t, ...data } : t)));
   };
 
   const deleteTutor = (id: string) => {
-    setTutors(prev => {
-      const updated = prev.filter(t => t.id !== id);
-      if (currentVet && typeof window !== 'undefined') {
-        localStorage.setItem(`vetcare_tutores_${currentVet.id}`, JSON.stringify(updated));
-      }
-      return updated;
-    });
+    setTutors(prev => prev.filter(t => t.id !== id));
   };
 
   const addPet = (pet: Pet) => {

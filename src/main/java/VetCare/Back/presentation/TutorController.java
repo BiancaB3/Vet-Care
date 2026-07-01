@@ -11,7 +11,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/tutores")
-@CrossOrigin(origins = "*", maxAge = 3600)
 @Tag(name = "Tutores", description = "Endpoints para gerenciamento dos tutores do VetCare.")
 public class TutorController {
 
@@ -53,5 +52,16 @@ public class TutorController {
             return ResponseEntity.ok("Atualizado com sucesso!");
         }
         return ResponseEntity.notFound().build();
+    }
+
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Remover tutor", description = "Remove um tutor pelo identificador informado.")
+    public ResponseEntity<?> remover(@PathVariable Long id) {
+        if (!tutorRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+
+        tutorRepository.deleteById(id);
+        return ResponseEntity.ok("Removido com sucesso!");
     }
 }

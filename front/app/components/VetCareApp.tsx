@@ -20,6 +20,7 @@ import {
 } from '../context/DraftContext';
 import api from '../services/api';
 import { loginService } from '../services/authService';
+import { listarTutores, criarTutor, atualizarTutor, excluirTutor } from '../services/tutorService';
 import { setToken, setUsuario } from '../redux/slices/authSlice';
 
 interface VeterinarioApi {
@@ -202,7 +203,7 @@ type VetCareAppProps = {
 
 const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda' }) => {
   const router = useRouter();
-  const { currentVet, login, logout, tutors, addTutor, updateTutor, deleteTutor, pets, addPet, updatePet, deletePet, appointments, addAppointment, updateAppointment, deleteAppointment, updateAppointmentStatus, consultations, addConsultation, updateConsultation, deleteConsultation } = useVet();
+  const { currentVet, login, logout, pets, addPet, updatePet, deletePet, appointments, addAppointment, updateAppointment, deleteAppointment, updateAppointmentStatus, consultations, addConsultation, updateConsultation, deleteConsultation } = useVet();
   const { getDraft, salvarProgresso, limparRascunho, temRascunho } = useDraft();
   const dispatch = useDispatch();
   const skipDraftSaveRef = useRef<Record<DraftKind, boolean>>({
@@ -215,23 +216,24 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda' }) =>
   const [screen, setScreen] = useState<'login' | 'register' | 'forgot' | 'dashboard'>('login');
   const [activeSection, setActiveSection] = useState<string>(initialSection);
   const [isModalOpen, setIsModalOpen] = useState<string | null>(null);
-  // Inserir tutores mockados após login de maria@vetcare.com
+  const [apiTutors, setApiTutors] = useState<Tutor[]>([]);
   useEffect(() => {
-    if (currentVet && currentVet.email === 'maria@vetcare.com') {
-      const mockTutors = [
-        { id: 'tutor1', vetId: currentVet.id, name: 'Mel Maia', email: 'mel.maia@tiktok.com', phone: '(21) 99888-7766', createdAt: new Date() },
-        { id: 'tutor2', vetId: currentVet.id, name: 'Fausto Silva', email: 'loco.bicho@domingao.com', phone: '(11) 91234-5678', createdAt: new Date() },
-        { id: 'tutor3', vetId: currentVet.id, name: 'Ana Maria Braga', email: 'acorda.menina@maisvoce.com', phone: '(21) 98765-4321', createdAt: new Date() },
-        { id: 'tutor4', vetId: currentVet.id, name: 'Neymar Junior', email: 'cai.cai@menino-ney.br', phone: '(13) 91010-1010', createdAt: new Date() },
-        { id: 'tutor5', vetId: currentVet.id, name: 'Gretchen Conga', email: 'rainha.piripiri@memes.com', phone: '(81) 95555-4444', createdAt: new Date() },
-      ];
-      // Evitar duplicidade
-      mockTutors.forEach((tutor) => {
-        if (!tutors.some((t) => t.email === tutor.email)) {
-          addTutor(tutor);
-        }
-      });
-    }
+    const carregarTutores = async () => {
+      if (!currentVet) {
+        setApiTutors([]);
+        return;
+      }
+
+      try {
+        const lista = await listarTutores();
+        setApiTutors(lista);
+      } catch {
+        setApiTutors([]);
+        showToast('Nao foi possivel carregar os tutores.');
+      }
+    };
+
+    carregarTutores();
   }, [currentVet]);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
@@ -317,6 +319,8 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda' }) =>
         email: loginForm.email,
         status: 'ATIVO',
         senha: '',
+        crmv: veterinarioPerfil?.crmv || 'Nao informado',
+        telefone: veterinarioPerfil?.telefone || '',
       };
       dispatch(setUsuario({ usuario }));
 
@@ -487,35 +491,43 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda' }) =>
   };
 
   // Form Handlers
-  const handleAddTutor = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleAddTutor = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     skipDraftSaveRef.current.tutor = true;
     limparRascunho('tutor', editingTutorId ?? null);
-    if (editingTutorId) {
-      updateTutor(editingTutorId, {
-        name: tutorForm.name,
-        email: tutorForm.email,
-        phone: tutorForm.phone,
-        photo: tutorPhoto || undefined,
-      });
-      setNotifications([...notifications, { id: Date.now().toString(), message: `Tutor "${tutorForm.name}" atualizado com sucesso`, type: 'edicao' }]);
-      setHasUnread(true);
-      showToast('Tutor atualizado com sucesso!');
-    } else {
-      const newTutor: Tutor = {
-        id: Date.now().toString(),
-        vetId: currentVet?.id || '',
-        name: tutorForm.name,
-        email: tutorForm.email,
-        phone: tutorForm.phone,
-        photo: tutorPhoto || undefined,
-        createdAt: new Date(),
-      };
-      addTutor(newTutor);
-      setNotifications([...notifications, { id: Date.now().toString(), message: `Tutor "${tutorForm.name}" cadastrado com sucesso`, type: 'cadastro' }]);
-      setHasUnread(true);
-      showToast('Tutor cadastrado com sucesso!');
+    try {
+      if (editingTutorId) {
+        const tutorAtualizado = await atualizarTutor(Number(editingTutorId), {
+          nome: tutorForm.name,
+          email: tutorForm.email,
+          telefone: tutorForm.phone,
+          cpf: null,
+          endereco: null,
+          status: 'ATIVO',
+        });
+        setApiTutors((prev) => prev.map((item) => (item.id === editingTutorId ? tutorAtualizado : item)));
+        setNotifications([...notifications, { id: Date.now().toString(), message: `Tutor "${tutorForm.name}" atualizado com sucesso`, type: 'edicao' }]);
+        setHasUnread(true);
+        showToast('Tutor atualizado com sucesso!');
+      } else {
+        const tutorCriado = await criarTutor({
+          nome: tutorForm.name,
+          email: tutorForm.email,
+          telefone: tutorForm.phone,
+          cpf: null,
+          endereco: null,
+          status: 'ATIVO',
+        });
+        setApiTutors((prev) => [...prev, tutorCriado]);
+        setNotifications([...notifications, { id: Date.now().toString(), message: `Tutor "${tutorForm.name}" cadastrado com sucesso`, type: 'cadastro' }]);
+        setHasUnread(true);
+        showToast('Tutor cadastrado com sucesso!');
+      }
+    } catch {
+      showToast('Nao foi possivel salvar o tutor.');
+      return;
     }
+
     closeModal();
     setEditingTutorId(null);
     setTutorForm({ name: '', email: '', phone: '' });
@@ -622,11 +634,11 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda' }) =>
     setDeleteConfirmModal({ show: true, type, id, name });
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     const { type, id } = deleteConfirmModal;
     switch (type) {
       case 'tutor':
-        handleDeleteTutor(id);
+        await handleDeleteTutor(id);
         break;
       case 'pet':
         handleDeletePet(id);
@@ -641,9 +653,16 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda' }) =>
     setDeleteConfirmModal({ show: false, type: '', id: '', name: '' });
   };
 
-  const handleDeleteTutor = (id: string) => {
-    const tutor = tutors.find(t => t.id === id);
-    deleteTutor(id);
+  const handleDeleteTutor = async (id: string) => {
+    const tutor = apiTutors.find(t => t.id === id);
+    try {
+      await excluirTutor(Number(id));
+      setApiTutors((prev) => prev.filter((item) => item.id !== id));
+    } catch {
+      showToast('Nao foi possivel remover o tutor.');
+      return;
+    }
+
     if (tutor) {
       setNotifications([...notifications, { id: Date.now().toString(), message: `Tutor "${tutor.name}" removido`, type: 'cancelamento' }]);
       setHasUnread(true);
@@ -687,7 +706,7 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda' }) =>
   };
 
   // Filter data by current vet
-  const currentVetTutors = tutors.filter(t => t.vetId === currentVet?.id);
+  const currentVetTutors = apiTutors;
   const currentVetPets = pets.filter(p => p.vetId === currentVet?.id);
   const currentVetAppointments = appointments.filter(a => a.vetId === currentVet?.id);
   const currentVetConsultations = consultations.filter(c => c.vetId === currentVet?.id);
