@@ -157,22 +157,6 @@ public class TutorController {
         return cep.replaceAll("\\D", "").matches("\\d{8}");
     }
 
-    @DeleteMapping("/{id}")
-    @Operation(summary = "Remover tutor", description = "Remove um tutor pelo identificador informado.")
-    public ResponseEntity<?> remover(@PathVariable Long id) {
-        var veterinario = obterVeterinarioAutenticado();
-        if (veterinario == null) {
-            return ResponseEntity.status(401).body("Veterinario nao autenticado.");
-        }
-
-        if (!tutorRepository.existsByIdAndVeterinarioId(id, veterinario.getId())) {
-            return ResponseEntity.notFound().build();
-        }
-
-        tutorRepository.deleteById(id);
-        return ResponseEntity.ok("Removido com sucesso!");
-    }
-
     private VetCare.Back.domain.entities.Veterinario obterVeterinarioAutenticado() {
         Authentication authentication = org.springframework.security.core.context.SecurityContextHolder
                 .getContext()

@@ -111,20 +111,6 @@ public class PetController {
         return null;
     }
 
-    @DeleteMapping("/{id}")
-    @Operation(summary = "Excluir pet", description = "Remove um pet pelo identificador informado.")
-    public ResponseEntity<?> excluir(@PathVariable Long id) {
-        var veterinario = obterVeterinarioAutenticado();
-        if (veterinario == null) {
-            return ResponseEntity.status(401).body("Veterinario nao autenticado.");
-        }
-
-        var existe = petRepository.existsByIdAndTutorVeterinarioId(id, veterinario.getId());
-        if (!existe) return ResponseEntity.notFound().build();
-        petRepository.deleteById(id);
-        return ResponseEntity.ok("Removido com sucesso!");
-    }
-
     private VetCare.Back.domain.entities.Veterinario obterVeterinarioAutenticado() {
         Authentication authentication = org.springframework.security.core.context.SecurityContextHolder
                 .getContext()
