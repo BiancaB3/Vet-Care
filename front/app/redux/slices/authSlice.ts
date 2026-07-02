@@ -6,6 +6,14 @@ import Cookies from "js-cookie";
 const usuarioRecover = Cookies.get('usuario');
 const tokenRecover = Cookies.get('token');
 
+function shouldUseSecureCookie(): boolean {
+  if (typeof window === 'undefined') {
+    return false;
+  }
+
+  return window.location.protocol === 'https:';
+}
+
 function parseUsuarioFromCookie(raw: string | undefined): Usuario | null {
   if (!raw) return null;
   try {
@@ -17,7 +25,7 @@ function parseUsuarioFromCookie(raw: string | undefined): Usuario | null {
 }
 
 const initialState: AuthState = {
-  usuario: parseUsuarioFromCookie(usuarioRecover),
+  usuario: tokenRecover ? parseUsuarioFromCookie(usuarioRecover) : null,
   token: tokenRecover ?? ""
 }
 
@@ -27,7 +35,11 @@ const authSlice = createSlice({
   reducers: {
     setToken: (state, action: PayloadAction<{ token: string }>) => {
       state.token = action.payload.token;
-      Cookies.set('token', action.payload.token, { expires: 7, secure: true })
+      Cookies.set('token', action.payload.token, {
+        expires: 7,
+        secure: shouldUseSecureCookie(),
+        sameSite: 'lax',
+      })
     },
     setUsuario: (state, action: PayloadAction<{ usuario: Usuario }>) => {
       state.usuario = action.payload.usuario;

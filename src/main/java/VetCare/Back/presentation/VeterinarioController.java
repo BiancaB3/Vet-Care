@@ -10,7 +10,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -34,6 +36,19 @@ public class VeterinarioController {
         return ResponseEntity.ok(veterinarioService.buscarPorId(id));
     }
 
+    @GetMapping("/logado")
+    @Operation(summary = "Buscar veterinario logado", description = "Retorna os dados do veterinario autenticado.")
+    public ResponseEntity<VeterinarioResponse> buscarLogado(Authentication authentication) {
+        String email = requireEmail(authentication);
+        VeterinarioResponse veterinario = veterinarioService.buscarPorEmail(email);
+
+        if (veterinario == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Veterinario nao autenticado.");
+        }
+
+        return ResponseEntity.ok(veterinario);
+    }
+
     @PostMapping("/cadastro")
     @Operation(summary = "Cadastro publico de veterinario", description = "Permite cadastrar veterinario pela tela de login sem autenticacao previa.")
     public ResponseEntity<VeterinarioResponse> cadastroPublico(@Valid @RequestBody VeterinarioCadastroRequest request) {
@@ -45,5 +60,18 @@ public class VeterinarioController {
     public ResponseEntity<?> atualizar(@PathVariable Long id, @Valid @RequestBody VeterinarioUpdateRequest request) {
         var alterarVeterinarioResult = veterinarioService.atualizar(id, request);
         return alterarVeterinarioResult ? ResponseEntity.ok("Atualizado com sucesso!") : ResponseEntity.notFound().build();
+    }
+
+    private String requireEmail(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Veterinario nao autenticado.");
+        }
+
+        String email = authentication.getName();
+        if (email == null || email.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Veterinario nao autenticado.");
+        }
+
+        return email;
     }
 }

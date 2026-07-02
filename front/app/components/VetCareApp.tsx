@@ -373,9 +373,11 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda', embe
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    const emailNormalizado = loginForm.email.trim();
+
     try {
       const loginResult = await loginService({
-        email: loginForm.email,
+        email: emailNormalizado,
         senha: loginForm.password,
       });
 
@@ -388,19 +390,24 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda', embe
 
       let veterinarioPerfil: VeterinarioApi | null = null;
       try {
-        const resposta = await api.get<VeterinarioApi[]>('/veterinarios');
-        veterinarioPerfil =
-          resposta.data.find(
-            (v) => v.email.toLowerCase() === loginForm.email.toLowerCase(),
-          ) ?? null;
+        const resposta = await api.get<VeterinarioApi>('/veterinarios/logado');
+        veterinarioPerfil = resposta.data;
       } catch {
-        veterinarioPerfil = null;
+        try {
+          const resposta = await api.get<VeterinarioApi[]>('/veterinarios');
+          veterinarioPerfil =
+            resposta.data.find(
+              (v) => v.email.toLowerCase() === emailNormalizado.toLowerCase(),
+            ) ?? null;
+        } catch {
+          veterinarioPerfil = null;
+        }
       }
 
       const usuario = {
         id: veterinarioPerfil?.id ?? null,
-        nome: veterinarioPerfil?.nome || loginForm.email,
-        email: loginForm.email,
+        nome: veterinarioPerfil?.nome || emailNormalizado,
+        email: veterinarioPerfil?.email || emailNormalizado,
         status: 'ATIVO',
         senha: '',
         crmv: veterinarioPerfil?.crmv || 'Nao informado',
@@ -409,9 +416,9 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda', embe
       dispatch(setUsuario({ usuario }));
 
       const vet: Veterinarian = {
-        id: String(veterinarioPerfil?.id ?? loginForm.email),
-        name: veterinarioPerfil?.nome || loginForm.email,
-        email: loginForm.email,
+        id: String(veterinarioPerfil?.id ?? emailNormalizado),
+        name: veterinarioPerfil?.nome || emailNormalizado,
+        email: veterinarioPerfil?.email || emailNormalizado,
         crmv: veterinarioPerfil?.crmv || 'Nao informado',
         phone: veterinarioPerfil?.telefone || '',
       };
@@ -647,7 +654,14 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda', embe
           endereco,
           status: 'ATIVO',
         });
-        setApiTutors(await listarTutores());
+
+        try {
+          setApiTutors(await listarTutores());
+        } catch (reloadError) {
+          console.error('Falha ao recarregar lista de tutores apos atualizacao.', reloadError);
+          showToast('Tutor atualizado, mas nao foi possivel recarregar a lista agora.');
+        }
+
         setNotifications([...notifications, { id: Date.now().toString(), message: `Tutor "${tutorForm.name}" atualizado com sucesso`, type: 'edicao' }]);
         setHasUnread(true);
         showToast('Tutor atualizado com sucesso!');
@@ -661,7 +675,14 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda', embe
           endereco,
           status: 'ATIVO',
         });
-        setApiTutors(await listarTutores());
+
+        try {
+          setApiTutors(await listarTutores());
+        } catch (reloadError) {
+          console.error('Falha ao recarregar lista de tutores apos cadastro.', reloadError);
+          showToast('Tutor cadastrado, mas nao foi possivel recarregar a lista agora.');
+        }
+
         setNotifications([...notifications, { id: Date.now().toString(), message: `Tutor "${tutorForm.name}" cadastrado com sucesso`, type: 'cadastro' }]);
         setHasUnread(true);
         showToast('Tutor cadastrado com sucesso!');

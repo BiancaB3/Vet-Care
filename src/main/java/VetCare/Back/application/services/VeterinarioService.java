@@ -53,6 +53,12 @@ public class VeterinarioService {
                 .filter(veterinario -> senhaConfere(loginRequest.senha(), veterinario));
     }
 
+    public VeterinarioResponse buscarPorEmail(String email) {
+        return veterinarioRepository.findByEmail(email)
+                .map(this::toResponse)
+                .orElse(null);
+    }
+
     public Veterinario salvar(Veterinario veterinario) {
         veterinario.setSenha(codificarSenha(veterinario.getSenha()));
         return veterinarioRepository.save(veterinario);
@@ -128,7 +134,7 @@ public class VeterinarioService {
                 || senha.startsWith("$2y$");
     }
 
-    private VeterinarioResponse toResponse(Veterinario veterinario) {
+    public VeterinarioResponse toResponse(Veterinario veterinario) {
         return new VeterinarioResponse(
                 veterinario.getId(),
                 veterinario.getNome(),

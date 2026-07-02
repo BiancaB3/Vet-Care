@@ -4,6 +4,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -36,6 +38,16 @@ public class GlobalExceptionHandler {
         return build(status, ex.getReason() != null ? ex.getReason() : "Erro na requisição.", request.getRequestURI());
     }
 
+    @ExceptionHandler({AuthenticationCredentialsNotFoundException.class, UsernameNotFoundException.class})
+    public ResponseEntity<ApiErrorResponse> handleAuth(Exception ex, HttpServletRequest request) {
+        return build(HttpStatus.UNAUTHORIZED, "Nao autenticado.", request.getRequestURI());
+    }
+
+    @ExceptionHandler(ClassCastException.class)
+    public ResponseEntity<ApiErrorResponse> handlePrincipalCast(ClassCastException ex, HttpServletRequest request) {
+        return build(HttpStatus.UNAUTHORIZED, "Token invalido para o recurso solicitado.", request.getRequestURI());
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiErrorResponse> handleValidation(MethodArgumentNotValidException ex, HttpServletRequest request) {
         String mensagem = ex.getBindingResult()
@@ -64,6 +76,16 @@ public class GlobalExceptionHandler {
         String resposta = status == HttpStatus.CONFLICT
                 ? "Ja existe um registro com estes dados."
                 : "Nao foi possivel concluir a operacao.";
+
+        if (status != HttpStatus.CONFLICT) {
+            if (mensagem.contains("veterinario_id") && mensagem.contains("null")) {
+                resposta = "Sessao invalida para cadastrar tutor. Faca login novamente.";
+            } else if (mensagem.contains("status") && (mensagem.contains("character varying") || mensagem.contains("smallint"))) {
+                resposta = "Inconsistencia no campo de status do tutor. Tente novamente apos atualizar o backend.";
+            } else if (mensagem.contains("violates foreign key") && mensagem.contains("veterinario")) {
+                resposta = "Veterinario invalido para o cadastro do tutor.";
+            }
+        }
 
         return build(status, resposta, request.getRequestURI());
     }

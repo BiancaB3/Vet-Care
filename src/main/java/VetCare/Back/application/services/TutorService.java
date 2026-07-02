@@ -8,6 +8,7 @@ import VetCare.Back.domain.enuns.EnumStatusTutor;
 import VetCare.Back.domain.repository.TutorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Locale;
@@ -39,12 +40,14 @@ public class TutorService {
                 .orElse(null);
     }
 
+    @Transactional
     public TutorResponse salvar(TutorRequest tutorRequest, Veterinario veterinario) {
         validarTutor(tutorRequest);
 
         var tutor = toEntity(tutorRequest);
         tutor.setVeterinario(veterinario);
-        return toResponse(tutorRepository.save(tutor));
+        var tutorSalvo = tutorRepository.saveAndFlush(tutor);
+        return toResponse(tutorSalvo);
     }
 
     public boolean atualizar(Long id, TutorRequest tutorRequest, Veterinario veterinario) {
