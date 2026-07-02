@@ -42,10 +42,6 @@ public class VeterinarioService {
         return veterinarioRepository.save(veterinarioAtual);
     }
 
-    public boolean bootstrapDisponivel() {
-        return veterinarioRepository.count() == 0;
-    }
-
     private boolean senhaConfere(String senhaInformada, Veterinario veterinario) {
         String senhaSalva = veterinario.getSenha();
 

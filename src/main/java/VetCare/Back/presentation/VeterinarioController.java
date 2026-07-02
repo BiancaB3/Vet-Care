@@ -38,12 +38,6 @@ public class VeterinarioController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @PostMapping
-    @Operation(summary = "Cadastrar veterinario", description = "Cadastra um novo veterinario no sistema.")
-    public ResponseEntity<Long> salvar(@RequestBody Veterinario veterinario) {
-        return ResponseEntity.ok(veterinarioService.salvar(veterinario).getId());
-    }
-
     @PostMapping("/cadastro")
     @Operation(summary = "Cadastro publico de veterinario", description = "Permite cadastrar veterinario pela tela de login sem autenticacao previa.")
     public ResponseEntity<?> cadastroPublico(@RequestBody Veterinario veterinario) {
@@ -64,17 +58,6 @@ public class VeterinarioController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Nao foi possivel concluir o cadastro do veterinario.");
         }
-    }
-
-    @PostMapping("/bootstrap")
-    @Operation(summary = "Bootstrap inicial", description = "Método responsável por criar o primeiro veterinário sem autenticação prévia.")
-    public ResponseEntity<?> bootstrap(@RequestBody Veterinario veterinario) {
-        if (!veterinarioService.bootstrapDisponivel()) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body("Bootstrap inicial indisponivel: ja existe veterinario cadastrado.");
-        }
-
-        return ResponseEntity.ok(veterinarioService.salvar(veterinario).getId());
     }
 
     @PutMapping("/{id}")

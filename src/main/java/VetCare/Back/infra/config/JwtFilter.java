@@ -81,7 +81,6 @@ public class JwtFilter extends OncePerRequestFilter {
                 || path.startsWith("/v3/api-docs")
                 || path.startsWith("/v2/api-docs")
                 || path.equals("/swagger-ui.html")
-                || (path.equals("/veterinarios/bootstrap") && HttpMethod.POST.matches(method))
                 || (path.equals("/veterinarios/cadastro") && HttpMethod.POST.matches(method))
                 || HttpMethod.OPTIONS.matches(method);
     }

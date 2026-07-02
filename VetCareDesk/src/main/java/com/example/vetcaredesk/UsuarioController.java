@@ -20,8 +20,7 @@ import static com.example.vetcaredesk.LoginController.showMenssage;
 
 public class UsuarioController {
 
-    private static final String VETERINARIO_URL = "http://localhost:8080/veterinarios";
-    private static final String VETERINARIO_BOOTSTRAP_URL = "http://localhost:8080/veterinarios/bootstrap";
+    private static final String VETERINARIO_CADASTRO_URL = "http://localhost:8080/veterinarios/cadastro";
 
     @FXML
     private TextField txtNome;
@@ -69,19 +68,13 @@ public class UsuarioController {
             return;
         }
 
-        String token = SessionContext.getToken();
-        boolean possuiToken = token != null && !token.isBlank();
-        URL url = new URL(possuiToken ? VETERINARIO_URL : VETERINARIO_BOOTSTRAP_URL);
+        URL url = new URL(VETERINARIO_CADASTRO_URL);
 
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("POST");
         conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
         conn.setConnectTimeout(5000);
         conn.setReadTimeout(5000);
-
-        if (possuiToken) {
-            conn.setRequestProperty("Authorization", "Bearer " + token);
-        }
 
         conn.setDoOutput(true);
 
