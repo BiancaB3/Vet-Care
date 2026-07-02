@@ -3,10 +3,8 @@ import { Usuario } from "@/app/types/usuarios";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit"
 import Cookies from "js-cookie";
 
-function readCookie(name: string): string | undefined {
-  if (typeof window === 'undefined') return undefined;
-  return Cookies.get(name);
-}
+const usuarioRecover = Cookies.get('usuario');
+const tokenRecover = Cookies.get('token');
 
 function parseUsuarioFromCookie(raw: string | undefined): Usuario | null {
   if (!raw) return null;
@@ -19,8 +17,8 @@ function parseUsuarioFromCookie(raw: string | undefined): Usuario | null {
 }
 
 const initialState: AuthState = {
-  usuario: parseUsuarioFromCookie(readCookie('usuario')),
-  token: readCookie('token') ?? ""
+  usuario: parseUsuarioFromCookie(usuarioRecover),
+  token: tokenRecover ?? ""
 }
 
 const authSlice = createSlice({
