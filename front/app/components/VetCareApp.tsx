@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import axios from 'axios';
 import {
   Mail, Lock, Bell, LogOut, Calendar, Users, Dog, ClipboardList,
   Plus, Search, X, TrendingUp, CalendarX, User, CheckCircle,
@@ -51,7 +51,6 @@ type VetCareAppProps = {
 };
 
 const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda', embedded = false }) => {
-  const router = useRouter();
   const { currentVet, login, logout, pets, addPet, updatePet, deletePet, appointments, addAppointment, updateAppointment, deleteAppointment, updateAppointmentStatus, consultations, addConsultation, updateConsultation, deleteConsultation } = useVet();
   const { getDraft, salvarProgresso, limparRascunho, temRascunho } = useDraft();
   const dispatch = useDispatch();
@@ -280,10 +279,9 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda', embe
       setScreen('dashboard');
       setLoginForm({ email: '', password: '' });
       showToast('Login realizado com sucesso!');
-      router.push('/home');
-    } catch (error: any) {
+    } catch (error: unknown) {
       const mensagem =
-        error?.response?.data && typeof error.response.data === 'string'
+        axios.isAxiosError(error) && typeof error.response?.data === 'string'
           ? error.response.data
           : 'Email ou senha incorretos';
 
@@ -313,9 +311,9 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda', embe
       setScreen('login');
       setLoginForm({ email: registerForm.email.trim(), password: '' });
       setRegisterForm({ name: '', crmv: '', email: '', password: '', phone: '' });
-    } catch (error: any) {
-      const status = error?.response?.status;
-      const data = error?.response?.data;
+    } catch (error: unknown) {
+      const status = axios.isAxiosError(error) ? error.response?.status : undefined;
+      const data = axios.isAxiosError(error) ? error.response?.data : undefined;
 
       if (status === 409) {
         showToast(typeof data === 'string' ? data : 'Ja existe veterinario com este email ou CRMV.');
