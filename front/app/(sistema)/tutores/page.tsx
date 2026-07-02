@@ -1,5 +1,5 @@
 import VetCareApp from '../../components/VetCareApp';
 
 export default function Page() {
-  return <VetCareApp initialSection="tutores" />;
+  return <VetCareApp initialSection="tutores" embedded />;
 }

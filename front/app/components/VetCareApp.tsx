@@ -6,7 +6,7 @@ import {
   Mail, Lock, Bell, LogOut, Calendar, Users, Dog, ClipboardList,
   Plus, Search, X, TrendingUp, CalendarX, User, CheckCircle,
   Trash2, Edit2, UserPlus, PlusCircle, FilePlus, Eye, EyeOff,
-  Cat, Feather, Mouse, Turtle, MessageCircle, Check, X as XIcon
+  Cat, Feather, Mouse, Turtle, Check, X as XIcon
 } from 'lucide-react';
 import { useDispatch } from 'react-redux';
 import { useVet, Veterinarian, Tutor, Pet, Appointment, Consultation } from '../context/VetContext';
@@ -24,15 +24,15 @@ import { listarTutores, criarTutor, atualizarTutor, excluirTutor, buscarEndereco
 import { setToken, setUsuario } from '../redux/slices/authSlice';
 import VetCareAuthPanel from './VetCareAuthPanel';
 import VetCareDashboardHeader from './VetCareDashboardHeader';
-import VetCareAgendaSection from './VetCareAgendaSection';
-import VetCareTutorSection from './VetCareTutorSection';
-import VetCarePetSection from './VetCarePetSection';
-import VetCareProntuarioSection from './VetCareProntuarioSection';
 import VetCareVeterinarioSection from './VetCareVeterinarioSection';
 import VetCareTutorModal from './VetCareTutorModal';
 import VetCarePetModal from './VetCarePetModal';
 import VetCareAppointmentModal from './VetCareAppointmentModal';
 import VetCareConsultationModal from './VetCareConsultationModal';
+import AgendaFeatureContainer from '../features/agenda/AgendaFeatureContainer';
+import TutorFeatureContainer from '../features/tutores/TutorFeatureContainer';
+import PetFeatureContainer from '../features/pets/PetFeatureContainer';
+import ProntuarioFeatureContainer from '../features/prontuarios/ProntuarioFeatureContainer';
 
 interface VeterinarioApi {
   id: number;
@@ -43,158 +43,14 @@ interface VeterinarioApi {
   email: string;
 }
 
-interface CalendarViewProps {
-  appointments: Appointment[];
-  pets: Pet[];
-  onDeleteAppointment: (id: string) => void;
-}
-
-const CalendarView: React.FC<CalendarViewProps> = ({ appointments, pets, onDeleteAppointment }) => {
-  const [currentDate, setCurrentDate] = useState(new Date());
-
-  const monthNames = [
-    'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
-  ];
-
-  const getDaysInMonth = (date: Date) => {
-    const year = date.getFullYear();
-    const month = date.getMonth();
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
-    const daysInMonth = lastDay.getDate();
-    const startingDayOfWeek = firstDay.getDay();
-
-    const days = [];
-
-    // Add empty cells for days before the first day of the month
-    for (let i = 0; i < startingDayOfWeek; i++) {
-      days.push(null);
-    }
-
-    // Add days of the month
-    for (let day = 1; day <= daysInMonth; day++) {
-      days.push(day);
-    }
-
-    return days;
-  };
-
-  const getAppointmentsForDate = (day: number) => {
-    const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-    return appointments.filter(apt => apt.date === dateStr);
-  };
-
-  const navigateMonth = (direction: 'prev' | 'next') => {
-    setCurrentDate(prev => {
-      const newDate = new Date(prev);
-      if (direction === 'prev') {
-        newDate.setMonth(newDate.getMonth() - 1);
-      } else {
-        newDate.setMonth(newDate.getMonth() + 1);
-      }
-      return newDate;
-    });
-  };
-
-  const days = getDaysInMonth(currentDate);
-  const weekDays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
-
-  return (
-    <div className="calendar-container">
-      {/* Calendar Header */}
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-xl font-bold text-slate-800">
-          {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
-        </h3>
-        <div className="flex gap-2">
-          <button
-            onClick={() => navigateMonth('prev')}
-            className="p-2 hover:bg-slate-100 rounded-lg"
-          >
-            ←
-          </button>
-          <button
-            onClick={() => setCurrentDate(new Date())}
-            className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90"
-          >
-            Hoje
-          </button>
-          <button
-            onClick={() => navigateMonth('next')}
-            className="p-2 hover:bg-slate-100 rounded-lg"
-          >
-            →
-          </button>
-        </div>
-      </div>
-
-      {/* Calendar Grid */}
-      <div className="grid grid-cols-7 gap-1">
-        {/* Week day headers */}
-        {weekDays.map(day => (
-          <div key={day} className="p-3 text-center font-semibold text-slate-600 text-sm">
-            {day}
-          </div>
-        ))}
-
-        {/* Calendar days */}
-        {days.map((day, index) => {
-          if (day === null) {
-            return <div key={index} className="p-3"></div>;
-          }
-
-          const dayAppointments = getAppointmentsForDate(day);
-          const isToday = new Date().toDateString() === new Date(currentDate.getFullYear(), currentDate.getMonth(), day).toDateString();
-
-          return (
-            <div
-              key={index}
-              className={`min-h-[120px] p-2 border border-slate-200 rounded-lg ${
-                isToday ? 'bg-primary/10 border-primary' : 'bg-white'
-              }`}
-            >
-              <div className={`text-sm font-medium mb-2 ${isToday ? 'text-primary' : 'text-slate-700'}`}>
-                {day}
-              </div>
-              <div className="space-y-1">
-                {dayAppointments.slice(0, 3).map(apt => {
-                  const pet = pets.find(p => p.id === apt.petId);
-                  return (
-                    <div
-                      key={apt.id}
-                      className={`text-xs p-1 rounded truncate ${
-                        apt.confirmed 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-yellow-100 text-yellow-800'
-                      }`}
-                      title={`${pet?.name || 'Pet'}: ${apt.reason} - ${apt.time} (${apt.confirmed ? 'Confirmado' : 'Pendente'})`}
-                    >
-                      {pet?.name || 'Pet'} - {apt.time}
-                    </div>
-                  );
-                })}
-                {dayAppointments.length > 3 && (
-                  <div className="text-xs text-slate-500">
-                    +{dayAppointments.length - 3} mais
-                  </div>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-};
-
 const emptyAppointmentForm = (): AppointmentDraft => emptyDraftByKind('appointment');
 
 type VetCareAppProps = {
   initialSection?: 'agenda' | 'tutores' | 'pets' | 'prontuarios' | 'veterinarios';
+  embedded?: boolean;
 };
 
-const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda' }) => {
+const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda', embedded = false }) => {
   const router = useRouter();
   const { currentVet, login, logout, pets, addPet, updatePet, deletePet, appointments, addAppointment, updateAppointment, deleteAppointment, updateAppointmentStatus, consultations, addConsultation, updateConsultation, deleteConsultation } = useVet();
   const { getDraft, salvarProgresso, limparRascunho, temRascunho } = useDraft();
@@ -206,7 +62,7 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda' }) =>
     consultation: false,
   });
 
-  const [screen, setScreen] = useState<'login' | 'register' | 'forgot' | 'dashboard'>('login');
+  const [screen, setScreen] = useState<'login' | 'register' | 'forgot' | 'dashboard'>(embedded ? 'dashboard' : 'login');
   const [activeSection, setActiveSection] = useState<string>(initialSection);
   const [isModalOpen, setIsModalOpen] = useState<string | null>(null);
   const [apiTutors, setApiTutors] = useState<Tutor[]>([]);
@@ -236,18 +92,8 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda' }) =>
   const [hasUnread, setHasUnread] = useState(false);
   const [toast, setToast] = useState<{ message: string; show: boolean }>({ message: '', show: false });
   const [showPassword, setShowPassword] = useState(false);
-  
-  // Agenda filters
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'agendado' | 'concluido' | 'cancelado'>('all');
-  const [agendaView, setAgendaView] = useState<'list' | 'calendar'>('list');
-  const [appointmentDetailsModal, setAppointmentDetailsModal] = useState<string | null>(null);
   const [deleteConfirmModal, setDeleteConfirmModal] = useState<{ show: boolean; type: string; id: string; name: string }>({ show: false, type: '', id: '', name: '' });
-  
-  // Other searches
-  const [tutorSearch, setTutorSearch] = useState('');
-  const [petSearch, setPetSearch] = useState('');
-  const [prontuarioSearch, setProntuarioSearch] = useState('');
+
   const [prescriptionSentModal, setPrescriptionSentModal] = useState(false);
   const [notifications, setNotifications] = useState<Array<{ id: string; message: string; type: 'cadastro' | 'edicao' | 'cancelamento' }>>([]);
 
@@ -871,17 +717,6 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda' }) =>
     showToast('Prontuário removido com sucesso!');
   };
 
-  // helper to choose icon by species
-  const getSpeciesIcon = (species: string) => {
-    const s = species.toLowerCase();
-    if (s.includes('cao') || s.includes('cão') || s.includes('dog')) return <Dog className="w-6 h-6 text-primary/30" />;
-    if (s.includes('gato') || s.includes('cat')) return <Cat className="w-6 h-6 text-primary/30" />;
-    if (s.includes('ave')) return <Feather className="w-6 h-6 text-primary/30" />;
-    if (s.includes('reptil')) return <Turtle className="w-6 h-6 text-primary/30" />;
-    if (s.includes('roedor')) return <Mouse className="w-6 h-6 text-primary/30" />;
-    return <Dog className="w-6 h-6 text-primary/30" />;
-  };
-
   // Filter data by current vet
   const currentVetTutors = apiTutors;
   const currentVetPets = pets.filter(p => p.vetId === currentVet?.id);
@@ -895,6 +730,10 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda' }) =>
 
   // Login Screen
   if (!currentVet) {
+    if (embedded) {
+      return null;
+    }
+
     return (
       <div className="h-full w-full flex items-center justify-center p-6 bg-gradient-to-br from-slate-50 via-blue-50 to-emerald-50 relative overflow-hidden min-h-screen">
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -925,9 +764,54 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda' }) =>
     );
   }
 
+  const sectionContent = (
+    <>
+      {activeSection === 'agenda' && (
+        <AgendaFeatureContainer
+          currentVetAppointments={currentVetAppointments}
+          currentVetPets={currentVetPets}
+          currentVetTutors={currentVetTutors}
+          onOpenAppointmentModal={() => openModal('appointment')}
+          onDeleteAppointment={handleDeleteAppointment}
+          onToggleAppointmentConfirmation={(id, confirmed) => updateAppointment(id, { confirmed })}
+          onShowToast={showToast}
+        />
+      )}
+
+      {activeSection === 'tutores' && (
+        <TutorFeatureContainer
+          currentVetTutors={currentVetTutors}
+          onOpenTutorModal={(id) => openModal('tutor', id)}
+          onDeleteTutor={handleDeleteTutor}
+        />
+      )}
+
+      {activeSection === 'pets' && (
+        <PetFeatureContainer
+          currentVetPets={currentVetPets}
+          currentVetTutors={currentVetTutors}
+          onOpenPetModal={(id) => openModal('pet', id)}
+          onDeletePet={handleDeletePet}
+        />
+      )}
+
+      {activeSection === 'prontuarios' && (
+        <ProntuarioFeatureContainer
+          currentVetConsultations={currentVetConsultations}
+          currentVetPets={currentVetPets}
+          onOpenConsultationModal={(id) => openModal('consultation', id)}
+          onDeleteConsultation={handleDeleteConsultation}
+        />
+      )}
+
+      {activeSection === 'veterinarios' && <VetCareVeterinarioSection currentVet={currentVet} />}
+    </>
+  );
+
   // Dashboard
   return (
-    <div className="h-screen w-full flex flex-col bg-background overflow-hidden">
+    <div className={`${embedded ? 'w-full' : 'h-screen'} w-full flex flex-col bg-background overflow-hidden`}>
+      {!embedded && (
       <VetCareDashboardHeader
         currentVet={currentVet}
         notificationsOpen={notificationsOpen}
@@ -945,8 +829,10 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda' }) =>
         }}
         onLogout={handleLogout}
       />
+      )}
 
       <div className="flex flex-1 overflow-hidden">
+        {!embedded && (
         <nav className="w-64 bg-white border-r border-slate-200 p-4 flex flex-col overflow-auto scrollbar-thin">
           <div className="space-y-2">
             {[
@@ -996,61 +882,10 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda' }) =>
             </div>
           </div>
         </nav>
+        )}
 
-        <main className="flex-1 overflow-auto p-6 bg-gradient-to-br from-slate-50 via-emerald-50 to-blue-50 scrollbar-thin">
-          {activeSection === 'agenda' && (
-            <VetCareAgendaSection
-              currentVetAppointments={currentVetAppointments}
-              currentVetPets={currentVetPets}
-              currentVetTutors={currentVetTutors}
-              agendaView={agendaView}
-              searchQuery={searchQuery}
-              statusFilter={statusFilter}
-              appointmentDetailsModal={appointmentDetailsModal}
-              onSetAgendaView={setAgendaView}
-              onSearchQueryChange={setSearchQuery}
-              onStatusFilterChange={(value) => setStatusFilter(value)}
-              onOpenAppointmentModal={() => openModal('appointment')}
-              onSetAppointmentDetailsModal={setAppointmentDetailsModal}
-              onDeleteAppointment={handleDeleteAppointment}
-            />
-          )}
-
-          {activeSection === 'tutores' && (
-            <VetCareTutorSection
-              currentVetTutors={currentVetTutors}
-              tutorSearch={tutorSearch}
-              onTutorSearchChange={setTutorSearch}
-              onOpenTutorModal={(id) => openModal('tutor', id)}
-              onDeleteTutor={handleDeleteTutor}
-            />
-          )}
-
-          {activeSection === 'pets' && (
-            <VetCarePetSection
-              currentVetPets={currentVetPets}
-              currentVetTutors={currentVetTutors}
-              petSearch={petSearch}
-              onPetSearchChange={setPetSearch}
-              onOpenPetModal={(id) => openModal('pet', id)}
-              onDeletePet={handleDeletePet}
-              renderSpeciesIcon={getSpeciesIcon}
-            />
-          )}
-
-          {activeSection === 'prontuarios' && (
-            <VetCareProntuarioSection
-              currentVetConsultations={currentVetConsultations}
-              currentVetPets={currentVetPets}
-              prontuarioSearch={prontuarioSearch}
-              onProntuarioSearchChange={setProntuarioSearch}
-              onOpenConsultationModal={(id) => openModal('consultation', id)}
-              onDeleteConsultation={handleDeleteConsultation}
-              renderSpeciesIcon={getSpeciesIcon}
-            />
-          )}
-
-          {activeSection === 'veterinarios' && <VetCareVeterinarioSection currentVet={currentVet} />}
+        <main className={`flex-1 overflow-auto p-6 ${embedded ? 'bg-transparent' : 'bg-gradient-to-br from-slate-50 via-emerald-50 to-blue-50'} scrollbar-thin`}>
+          {sectionContent}
         </main>
       </div>
 
@@ -1194,91 +1029,6 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda' }) =>
         </div>
       )}
 
-      {appointmentDetailsModal && (() => {
-        const appointment = currentVetAppointments.find(a => a.id === appointmentDetailsModal);
-        const pet = appointment ? currentVetPets.find(p => p.id === appointment.petId) : null;
-        const tutor = pet ? currentVetTutors.find(t => t.id === pet.tutorId) : null;
-
-        if (!appointment || !pet || !tutor) return null;
-
-        const handleWhatsAppMessage = () => {
-          const message = `Olá ${tutor.name}! Lembrando da consulta do ${pet.name} agendada para ${appointment.date} às ${appointment.time}. Motivo: ${appointment.reason}. ${appointment.confirmed ? 'Consulta confirmada!' : 'Aguardando confirmação.'}`;
-          const whatsappUrl = `https://wa.me/55${tutor.phone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
-          window.open(whatsappUrl, '_blank');
-        };
-
-        return (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-3xl w-full max-w-lg border border-slate-200 shadow-2xl">
-              <div className="p-6 border-b flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Calendar className="w-6 h-6 text-primary" />
-                  <h3 className="text-2xl font-bold">Detalhes da Consulta</h3>
-                </div>
-                <button onClick={() => setAppointmentDetailsModal(null)} className="p-2 hover:bg-slate-100 rounded-lg">
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-              <div className="p-6 space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-600 mb-1">Data</label>
-                    <p className="text-lg font-medium text-slate-900">{appointment.date}</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-slate-600 mb-1">Horário</label>
-                    <p className="text-lg font-medium text-slate-900">{appointment.time}</p>
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-slate-600 mb-1">Pet</label>
-                  <p className="text-lg font-medium text-slate-900">{pet.name}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-slate-600 mb-1">Tutor</label>
-                  <p className="text-lg font-medium text-slate-900">{tutor.name}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-slate-600 mb-1">Descrição</label>
-                  <p className="text-slate-700">{appointment.reason}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-slate-600 mb-1">Status</label>
-                  <div className="flex items-center gap-3">
-                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                      appointment.confirmed ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-                    }`}>
-                      {appointment.confirmed ? 'Confirmado' : 'Pendente Confirmação'}
-                    </span>
-                    <button
-                      onClick={() => {
-                        updateAppointment(appointment.id, { confirmed: !appointment.confirmed });
-                        showToast(`Consulta ${!appointment.confirmed ? 'confirmada' : 'marcada como pendente'}!`);
-                      }}
-                      className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${
-                        appointment.confirmed 
-                          ? 'bg-yellow-500 hover:bg-yellow-600 text-white' 
-                          : 'bg-green-500 hover:bg-green-600 text-white'
-                      }`}
-                    >
-                      {appointment.confirmed ? 'Marcar Pendente' : 'Confirmar'}
-                    </button>
-                  </div>
-                </div>
-                <div className="pt-4 border-t">
-                  <button
-                    onClick={handleWhatsAppMessage}
-                    className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-xl transition-all"
-                  >
-                    <MessageCircle className="w-5 h-5" />
-                    Enviar Mensagem WhatsApp
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-      })()}
     </div>
   );
 };
