@@ -1,15 +1,21 @@
 package VetCare.Back.presentation;
 
+import VetCare.Back.application.DTO.TutorRequest;
+import VetCare.Back.application.DTO.TutorResponse;
+import VetCare.Back.domain.enuns.EnumStatusTutor;
 import VetCare.Back.domain.entities.Tutor;
 import VetCare.Back.domain.repository.TutorRepository;
 import VetCare.Back.domain.repository.VeterinarioRepository;
+import jakarta.validation.Valid;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
+import java.util.Locale;
 
 @RestController
 @RequestMapping("/tutores")
@@ -24,95 +30,132 @@ public class TutorController {
 
     @GetMapping
     @Operation(summary = "Listar tutores", description = "Retorna a lista de tutores cadastrados.")
-    public ResponseEntity<List<Tutor>> listarTodos() {
+    public ResponseEntity<List<TutorResponse>> listarTodos() {
         var veterinario = obterVeterinarioAutenticado();
         if (veterinario == null) {
             return ResponseEntity.status(401).build();
         }
 
-        return ResponseEntity.ok(tutorRepository.findByVeterinarioId(veterinario.getId()));
+        var resposta = tutorRepository.findByVeterinarioId(veterinario.getId())
+                .stream()
+                .map(this::toResponse)
+                .toList();
+
+        return ResponseEntity.ok(resposta);
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Buscar tutor por id", description = "Retorna um tutor pelo identificador informado.")
-    public ResponseEntity<Tutor> buscarPorId(@PathVariable Long id) {
+    public ResponseEntity<TutorResponse> buscarPorId(@PathVariable Long id) {
         var veterinario = obterVeterinarioAutenticado();
         if (veterinario == null) {
             return ResponseEntity.status(401).build();
         }
 
         return tutorRepository.findByIdAndVeterinarioId(id, veterinario.getId())
+                .map(this::toResponse)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping
     @Operation(summary = "Cadastrar tutor", description = "Cadastra um novo tutor no sistema.")
-    public ResponseEntity<?> salvar(@RequestBody Tutor tutor) {
+    public ResponseEntity<?> salvar(@Valid @RequestBody TutorRequest tutorRequest) {
         var veterinario = obterVeterinarioAutenticado();
         if (veterinario == null) {
             return ResponseEntity.status(401).body("Veterinario nao autenticado.");
         }
 
-        var validacao = validarTutor(tutor);
+        var validacao = validarTutor(tutorRequest);
         if (validacao != null) {
             return validacao;
         }
 
+        var tutor = toEntity(tutorRequest);
         tutor.setVeterinario(veterinario);
         return ResponseEntity.ok(tutorRepository.save(tutor).getId());
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Atualizar tutor", description = "Atualiza os dados de um tutor existente.")
-    public ResponseEntity<?> atualizar(@PathVariable Long id, @RequestBody Tutor tutor) {
+    public ResponseEntity<?> atualizar(@PathVariable Long id, @Valid @RequestBody TutorRequest tutorRequest) {
         var veterinario = obterVeterinarioAutenticado();
         if (veterinario == null) {
             return ResponseEntity.status(401).body("Veterinario nao autenticado.");
         }
 
-        var validacao = validarTutor(tutor);
+        var validacao = validarTutor(tutorRequest);
         if (validacao != null) {
             return validacao;
         }
 
+        var tutorAtualizado = toEntity(tutorRequest);
         var tutorBanco = tutorRepository.findByIdAndVeterinarioId(id, veterinario.getId()).orElse(null);
         if (tutorBanco != null) {
-            tutorBanco.setNome(tutor.getNome());
-            tutorBanco.setCpf(tutor.getCpf());
-            tutorBanco.setCep(tutor.getCep());
-            tutorBanco.setTelefone(tutor.getTelefone());
-            tutorBanco.setEmail(tutor.getEmail());
-            tutorBanco.setEndereco(tutor.getEndereco());
-            tutorBanco.setStatus(tutor.getStatus());
+            tutorBanco.setNome(tutorAtualizado.getNome());
+            tutorBanco.setCpf(tutorAtualizado.getCpf());
+            tutorBanco.setCep(tutorAtualizado.getCep());
+            tutorBanco.setTelefone(tutorAtualizado.getTelefone());
+            tutorBanco.setEmail(tutorAtualizado.getEmail());
+            tutorBanco.setEndereco(tutorAtualizado.getEndereco());
+            tutorBanco.setStatus(tutorAtualizado.getStatus());
             tutorRepository.save(tutorBanco);
             return ResponseEntity.ok("Atualizado com sucesso!");
         }
         return ResponseEntity.notFound().build();
     }
 
-    private ResponseEntity<?> validarTutor(Tutor tutor) {
-        if (tutor == null) {
+    private ResponseEntity<?> validarTutor(TutorRequest tutorRequest) {
+        if (tutorRequest == null) {
             return ResponseEntity.badRequest().body("Dados do tutor nao informados.");
         }
 
-        if (tutor.getNome() == null || tutor.getNome().isBlank()) {
+        if (tutorRequest.nome() == null || tutorRequest.nome().isBlank()) {
             return ResponseEntity.badRequest().body("Nome do tutor e obrigatorio.");
         }
 
-        if (tutor.getEmail() == null || tutor.getEmail().isBlank()) {
+        if (tutorRequest.email() == null || tutorRequest.email().isBlank()) {
             return ResponseEntity.badRequest().body("Email do tutor e obrigatorio.");
         }
 
-        if (!cpfValido(tutor.getCpf())) {
+        if (!cpfValido(tutorRequest.cpf())) {
             return ResponseEntity.badRequest().body("CPF invalido. Informe um CPF valido com 11 digitos.");
         }
 
-        if (!cepValido(tutor.getCep())) {
+        if (!cepValido(tutorRequest.cep())) {
             return ResponseEntity.badRequest().body("CEP invalido. Informe um CEP valido com 8 digitos.");
         }
 
         return null;
+    }
+
+    private Tutor toEntity(TutorRequest request) {
+        var tutor = new Tutor();
+        tutor.setNome(request.nome().trim());
+        tutor.setEmail(request.email().trim());
+        tutor.setTelefone(request.telefone().trim());
+        tutor.setCpf(request.cpf().replaceAll("\\D", ""));
+        tutor.setCep(request.cep().replaceAll("\\D", ""));
+        tutor.setEndereco(request.endereco());
+
+        var statusTexto = request.status() == null || request.status().isBlank()
+                ? EnumStatusTutor.ATIVO.name()
+                : request.status().trim().toUpperCase(Locale.ROOT);
+        tutor.setStatus(EnumStatusTutor.valueOf(statusTexto));
+        return tutor;
+    }
+
+    private TutorResponse toResponse(Tutor tutor) {
+        return new TutorResponse(
+                tutor.getId(),
+                tutor.getNome(),
+                tutor.getEmail(),
+                tutor.getTelefone(),
+                tutor.getCpf(),
+                tutor.getCep(),
+                tutor.getEndereco(),
+                tutor.getStatus() != null ? tutor.getStatus().name() : null
+        );
     }
 
     private boolean cpfValido(String cpf) {

@@ -14,6 +14,7 @@ type PetApi = {
   peso?: number | null;
   sexo?: string | null;
   cor?: string | null;
+  tutorId?: number | null;
   tutor?: TutorRefApi | null;
 };
 
@@ -29,10 +30,12 @@ type PetPayload = {
 };
 
 function toPetModel(vetId: string, item: PetApi): Pet {
+  const resolvedTutorId = item.tutorId ?? item.tutor?.id ?? '';
+
   return {
     id: String(item.id),
     vetId,
-    tutorId: String(item.tutor?.id ?? ''),
+    tutorId: String(resolvedTutorId),
     name: item.nome,
     species: item.especie,
     breed: item.raca ?? undefined,

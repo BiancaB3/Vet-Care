@@ -2,8 +2,29 @@ import axios from "axios";
 import { store } from "../redux/store";
 import { logout } from "../redux/slices/authSlice";
 
+const FALLBACK_API_URL = "http://localhost:8080";
+
+export function getApiErrorMessage(data: unknown, fallback: string): string {
+  if (typeof data === "string" && data.trim().length > 0) {
+    return data;
+  }
+
+  if (
+    typeof data === "object" &&
+    data !== null &&
+    "message" in data &&
+    typeof (data as { message?: unknown }).message === "string"
+  ) {
+    const message = (data as { message: string }).message.trim();
+    if (message.length > 0) return message;
+  }
+
+  return fallback;
+}
+
 const api = axios.create({
-  baseURL: "http://localhost:8080", // ajuste se no VetCare usar variável de ambiente
+  baseURL: process.env.NEXT_PUBLIC_API_URL?.trim() || FALLBACK_API_URL,
+  timeout: 10000,
 });
 
 api.interceptors.request.use((config) => {
@@ -24,17 +45,20 @@ api.interceptors.response.use(
 
     if (status === 401) {
       store.dispatch(logout());
-      window.location.href = "/login";
+      if (typeof window !== "undefined") {
+        window.location.href = "/login";
+      }
     }
 
     if (status === 403) {
-      const mensagem =
-        typeof data === "string"
-          ? data
-          : "Você não possui permissão para acessar este recurso.";
+      const mensagem = getApiErrorMessage(
+        data,
+        "Voce nao possui permissao para acessar este recurso.",
+      );
 
-      alert(mensagem);
-      window.location.href = "/";
+      if (typeof window !== "undefined") {
+        console.warn(mensagem);
+      }
     }
 
     return Promise.reject(error);
