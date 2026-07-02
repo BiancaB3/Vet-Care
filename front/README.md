@@ -59,23 +59,11 @@ Vet-Care/
 - Node.js instalado
 - npm ou yarn
 
-### Configuração de ambiente
-
-Crie um arquivo `.env.local` com base no `.env.example`:
-
-```bash
-cp .env.example .env.local
-```
-
-Variável utilizada:
-
-- `NEXT_PUBLIC_API_URL` (exemplo: `http://localhost:8080`)
-
 ### Passos
 
 ```bash
 git clone https://github.com/BiancaB3/Vet-Care.git
-cd Vet-Care/front
+cd Vet-Care
 npm install
 npm run dev
 ```
