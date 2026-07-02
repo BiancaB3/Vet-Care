@@ -1,6 +1,6 @@
-export const pets: Array<{
+//export const pets: Array<{
 	id: number;
 	nome: string;
 	especie: string;
 	tutor: string;
-}> = [];
+//}> = [];

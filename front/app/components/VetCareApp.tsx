@@ -9,7 +9,7 @@ import {
   Cat, Feather, Mouse, Turtle, Check, X as XIcon
 } from 'lucide-react';
 import { useDispatch } from 'react-redux';
-import { useVet, Veterinarian, Tutor, Pet, Appointment, Consultation } from '../context/VetContext';
+import { useVet, Veterinarian, Tutor, Pet, Appointment, Consultation } from '../types/VetContext';
 import {
   useDraft,
   emptyDraftByKind,
@@ -17,7 +17,7 @@ import {
   type PetDraft,
   type ConsultationDraft,
   type DraftKind,
-} from '../context/DraftContext';
+} from '../types/DraftContext';
 import api from '../services/api';
 import { loginService } from '../services/authService';
 import { listarTutores, criarTutor, atualizarTutor, excluirTutor, buscarEnderecoPorCep } from '../services/tutorService';

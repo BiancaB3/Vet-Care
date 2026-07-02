@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
-import { AuthProvider } from './context/AuthContext';
-import { DraftProvider } from './context/DraftContext';
-import { VetProvider } from './context/VetContext';
+import { AuthProvider } from './types/AuthContext';
+import { DraftProvider } from './types/DraftContext';
+import { VetProvider } from './types/VetContext';
 import StoreProvider from './redux/StoreProvider';
 import './globals.css';
 
