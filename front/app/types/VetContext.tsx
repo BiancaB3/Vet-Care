@@ -194,7 +194,10 @@ export function VetProvider({ children }: { children: ReactNode }) {
   };
 
   const deletePet = async (id: string): Promise<void> => {
-    await excluirPet(Number(id));
+    const sucesso = await excluirPet(Number(id));
+    if (!sucesso) {
+      throw new Error('Nao foi possivel excluir o pet.');
+    }
     setPets(prev => prev.filter(p => p.id !== id));
   };
 

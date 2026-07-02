@@ -51,7 +51,7 @@ public class PetController {
     public ResponseEntity<?> atualizar(@PathVariable Long id, @RequestBody PetRequest petRequest, Authentication auth) {
         Veterinario veterinario = (Veterinario) auth.getPrincipal();
 
-        petService.atualizar(id, petRequest, veterinario);
-        return ResponseEntity.ok().build();
+        var alterarPetResult = petService.atualizar(id, petRequest, veterinario);
+        return alterarPetResult ? ResponseEntity.ok("Atualizado com sucesso!") : ResponseEntity.notFound().build();
     }
 }

@@ -51,8 +51,8 @@ public class AgendamentoController {
     public ResponseEntity<?> atualizar(@PathVariable Long id, @RequestBody AgendamentoRequest agendamentoRequest, Authentication auth) {
         Veterinario veterinario = (Veterinario) auth.getPrincipal();
 
-        agendamentoService.atualizar(id, agendamentoRequest, veterinario);
-        return ResponseEntity.ok().build();
+        var alterarAgendamentoResult = agendamentoService.atualizar(id, agendamentoRequest, veterinario);
+        return alterarAgendamentoResult ? ResponseEntity.ok("Atualizado com sucesso!") : ResponseEntity.notFound().build();
     }
 }
 

@@ -11,7 +11,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Service
@@ -39,11 +38,14 @@ public class VeterinarioService {
         return toResponse(salvar(toEntity(request)));
     }
 
-    public void atualizar(Long id, VeterinarioUpdateRequest request) {
-        var veterinarioAtual = veterinarioRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("Veterinario nao encontrado."));
+    public boolean atualizar(Long id, VeterinarioUpdateRequest request) {
+        var veterinarioAtual = veterinarioRepository.findById(id).orElse(null);
+        if (veterinarioAtual != null) {
+            atualizar(veterinarioAtual, toEntity(request));
+            return true;
+        }
 
-        atualizar(veterinarioAtual, toEntity(request));
+        return false;
     }
 
     public Optional<Veterinario> autenticar(LoginRequest loginRequest) {

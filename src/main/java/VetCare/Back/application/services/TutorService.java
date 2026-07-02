@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Locale;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Service
@@ -48,21 +47,24 @@ public class TutorService {
         return toResponse(tutorRepository.save(tutor));
     }
 
-    public void atualizar(Long id, TutorRequest tutorRequest, Veterinario veterinario) {
+    public boolean atualizar(Long id, TutorRequest tutorRequest, Veterinario veterinario) {
         validarTutor(tutorRequest);
 
-        var tutorBanco = tutorRepository.findByIdAndVeterinarioId(id, veterinario.getId())
-                .orElseThrow(() -> new NoSuchElementException("Tutor nao encontrado."));
+        var tutorBanco = tutorRepository.findByIdAndVeterinarioId(id, veterinario.getId()).orElse(null);
+        if (tutorBanco != null) {
+            var tutorAtualizado = toEntity(tutorRequest);
+            tutorBanco.setNome(tutorAtualizado.getNome());
+            tutorBanco.setCpf(tutorAtualizado.getCpf());
+            tutorBanco.setCep(tutorAtualizado.getCep());
+            tutorBanco.setTelefone(tutorAtualizado.getTelefone());
+            tutorBanco.setEmail(tutorAtualizado.getEmail());
+            tutorBanco.setEndereco(tutorAtualizado.getEndereco());
+            tutorBanco.setStatus(tutorAtualizado.getStatus());
+            tutorRepository.save(tutorBanco);
+            return true;
+        }
 
-        var tutorAtualizado = toEntity(tutorRequest);
-        tutorBanco.setNome(tutorAtualizado.getNome());
-        tutorBanco.setCpf(tutorAtualizado.getCpf());
-        tutorBanco.setCep(tutorAtualizado.getCep());
-        tutorBanco.setTelefone(tutorAtualizado.getTelefone());
-        tutorBanco.setEmail(tutorAtualizado.getEmail());
-        tutorBanco.setEndereco(tutorAtualizado.getEndereco());
-        tutorBanco.setStatus(tutorAtualizado.getStatus());
-        tutorRepository.save(tutorBanco);
+        return false;
     }
 
     private void validarTutor(TutorRequest tutorRequest) {

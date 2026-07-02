@@ -52,7 +52,7 @@ public class TutorController {
     public ResponseEntity<?> atualizar(@PathVariable Long id, @Valid @RequestBody TutorRequest tutorRequest, Authentication auth) {
         Veterinario veterinario = (Veterinario) auth.getPrincipal();
 
-        tutorService.atualizar(id, tutorRequest, veterinario);
-        return ResponseEntity.ok().build();
+        var alterarTutorResult = tutorService.atualizar(id, tutorRequest, veterinario);
+        return alterarTutorResult ? ResponseEntity.ok("Atualizado com sucesso!") : ResponseEntity.notFound().build();
     }
 }

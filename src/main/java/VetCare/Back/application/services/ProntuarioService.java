@@ -13,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Service
@@ -64,28 +63,31 @@ public class ProntuarioService {
         return toResponse(prontuarioRepository.save(prontuario));
     }
 
-    public void atualizar(Long id, ProntuarioRequest prontuarioRequest, Veterinario veterinario) {
+    public boolean atualizar(Long id, ProntuarioRequest prontuarioRequest, Veterinario veterinario) {
         validarProntuario(prontuarioRequest);
 
-        var prontuarioBanco = prontuarioRepository.findByIdAndVeterinarioId(id, veterinario.getId())
-                .orElseThrow(() -> new NoSuchElementException("Prontuario nao encontrado."));
+        var prontuarioBanco = prontuarioRepository.findByIdAndVeterinarioId(id, veterinario.getId()).orElse(null);
+        if (prontuarioBanco != null) {
+            var pet = buscarPetDoVeterinario(prontuarioRequest, veterinario);
+            if (pet == null) {
+                throw new IllegalArgumentException("Pet informado nao existe para o veterinario autenticado.");
+            }
 
-        var pet = buscarPetDoVeterinario(prontuarioRequest, veterinario);
-        if (pet == null) {
-            throw new IllegalArgumentException("Pet informado nao existe para o veterinario autenticado.");
+            var prontuarioAtualizado = toEntity(prontuarioRequest);
+            prontuarioBanco.setDataAtendimento(prontuarioAtualizado.getDataAtendimento());
+            prontuarioBanco.setDescricao(prontuarioAtualizado.getDescricao());
+            prontuarioBanco.setDiagnostico(prontuarioAtualizado.getDiagnostico());
+            prontuarioBanco.setTratamento(prontuarioAtualizado.getTratamento());
+            prontuarioBanco.setPrescricao(prontuarioAtualizado.getPrescricao());
+            prontuarioBanco.setPet(pet);
+            prontuarioBanco.setVeterinario(veterinario);
+            prontuarioBanco.setAgendamento(buscarAgendamentoOpcional(prontuarioRequest, veterinario));
+
+            prontuarioRepository.save(prontuarioBanco);
+            return true;
         }
 
-        var prontuarioAtualizado = toEntity(prontuarioRequest);
-        prontuarioBanco.setDataAtendimento(prontuarioAtualizado.getDataAtendimento());
-        prontuarioBanco.setDescricao(prontuarioAtualizado.getDescricao());
-        prontuarioBanco.setDiagnostico(prontuarioAtualizado.getDiagnostico());
-        prontuarioBanco.setTratamento(prontuarioAtualizado.getTratamento());
-        prontuarioBanco.setPrescricao(prontuarioAtualizado.getPrescricao());
-        prontuarioBanco.setPet(pet);
-        prontuarioBanco.setVeterinario(veterinario);
-        prontuarioBanco.setAgendamento(buscarAgendamentoOpcional(prontuarioRequest, veterinario));
-
-        prontuarioRepository.save(prontuarioBanco);
+        return false;
     }
 
     private Pet buscarPetDoVeterinario(ProntuarioRequest prontuarioRequest, Veterinario veterinario) {

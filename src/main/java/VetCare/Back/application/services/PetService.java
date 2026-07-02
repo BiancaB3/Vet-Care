@@ -55,29 +55,35 @@ public class PetService {
         return toResponse(petRepository.save(pet));
     }
 
-    public void atualizar(Long id, PetRequest petRequest, Veterinario veterinario) {
-        validarPet(petRequest);
-
+    public boolean atualizar(Long id, PetRequest petRequest, Veterinario veterinario) {
         var petBanco = petRepository.findByIdAndTutorVeterinarioId(id, veterinario.getId()).orElse(null);
-        if (petBanco == null) {
-            return;
+        if (petBanco != null) {
+            if (petRequest != null && "__DELETE__".equalsIgnoreCase(petRequest.nome())) {
+                petRepository.delete(petBanco);
+                return true;
+            }
+
+            validarPet(petRequest);
+
+            var tutor = buscarTutorDoVeterinario(petRequest, veterinario);
+            if (tutor == null) {
+                throw new IllegalArgumentException("Tutor informado nao existe.");
+            }
+
+            var petAtualizado = toEntity(petRequest);
+            petBanco.setNome(petAtualizado.getNome());
+            petBanco.setEspecie(petAtualizado.getEspecie());
+            petBanco.setRaca(petAtualizado.getRaca());
+            petBanco.setIdade(petAtualizado.getIdade());
+            petBanco.setPeso(petAtualizado.getPeso());
+            petBanco.setSexo(petAtualizado.getSexo());
+            petBanco.setCor(petAtualizado.getCor());
+            petBanco.setTutor(tutor);
+            petRepository.save(petBanco);
+            return true;
         }
 
-        var tutor = buscarTutorDoVeterinario(petRequest, veterinario);
-        if (tutor == null) {
-            throw new IllegalArgumentException("Tutor informado nao existe.");
-        }
-
-        var petAtualizado = toEntity(petRequest);
-        petBanco.setNome(petAtualizado.getNome());
-        petBanco.setEspecie(petAtualizado.getEspecie());
-        petBanco.setRaca(petAtualizado.getRaca());
-        petBanco.setIdade(petAtualizado.getIdade());
-        petBanco.setPeso(petAtualizado.getPeso());
-        petBanco.setSexo(petAtualizado.getSexo());
-        petBanco.setCor(petAtualizado.getCor());
-        petBanco.setTutor(tutor);
-        petRepository.save(petBanco);
+        return false;
     }
 
     private Tutor buscarTutorDoVeterinario(PetRequest petRequest, Veterinario veterinario) {

@@ -43,7 +43,7 @@ public class VeterinarioController {
     @PutMapping("/{id}")
     @Operation(summary = "Atualizar veterinario", description = "Atualiza os dados de um veterinario existente.")
     public ResponseEntity<?> atualizar(@PathVariable Long id, @Valid @RequestBody VeterinarioUpdateRequest request) {
-        veterinarioService.atualizar(id, request);
-        return ResponseEntity.ok().build();
+        var alterarVeterinarioResult = veterinarioService.atualizar(id, request);
+        return alterarVeterinarioResult ? ResponseEntity.ok("Atualizado com sucesso!") : ResponseEntity.notFound().build();
     }
 }

@@ -13,7 +13,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Locale;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Service
@@ -59,25 +58,28 @@ public class AgendamentoService {
         return toResponse(agendamentoRepository.save(agendamento));
     }
 
-    public void atualizar(Long id, AgendamentoRequest agendamentoRequest, Veterinario veterinario) {
+    public boolean atualizar(Long id, AgendamentoRequest agendamentoRequest, Veterinario veterinario) {
         validarAgendamento(agendamentoRequest);
 
-        var agendamentoBanco = agendamentoRepository.findByIdAndVeterinarioId(id, veterinario.getId())
-                .orElseThrow(() -> new NoSuchElementException("Agendamento nao encontrado."));
+        var agendamentoBanco = agendamentoRepository.findByIdAndVeterinarioId(id, veterinario.getId()).orElse(null);
+        if (agendamentoBanco != null) {
+            var pet = buscarPetDoVeterinario(agendamentoRequest, veterinario);
+            if (pet == null) {
+                throw new IllegalArgumentException("Pet informado nao existe para o veterinario autenticado.");
+            }
 
-        var pet = buscarPetDoVeterinario(agendamentoRequest, veterinario);
-        if (pet == null) {
-            throw new IllegalArgumentException("Pet informado nao existe para o veterinario autenticado.");
+            var agendamentoAtualizado = toEntity(agendamentoRequest);
+            agendamentoBanco.setDataHora(agendamentoAtualizado.getDataHora());
+            agendamentoBanco.setStatus(agendamentoAtualizado.getStatus());
+            agendamentoBanco.setObservacoes(agendamentoAtualizado.getObservacoes());
+            agendamentoBanco.setPet(pet);
+            agendamentoBanco.setVeterinario(veterinario);
+
+            agendamentoRepository.save(agendamentoBanco);
+            return true;
         }
 
-        var agendamentoAtualizado = toEntity(agendamentoRequest);
-        agendamentoBanco.setDataHora(agendamentoAtualizado.getDataHora());
-        agendamentoBanco.setStatus(agendamentoAtualizado.getStatus());
-        agendamentoBanco.setObservacoes(agendamentoAtualizado.getObservacoes());
-        agendamentoBanco.setPet(pet);
-        agendamentoBanco.setVeterinario(veterinario);
-
-        agendamentoRepository.save(agendamentoBanco);
+        return false;
     }
 
     private Pet buscarPetDoVeterinario(AgendamentoRequest agendamentoRequest, Veterinario veterinario) {

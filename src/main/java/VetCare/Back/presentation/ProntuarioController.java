@@ -51,8 +51,8 @@ public class ProntuarioController {
     public ResponseEntity<?> atualizar(@PathVariable Long id, @RequestBody ProntuarioRequest prontuarioRequest, Authentication auth) {
         Veterinario veterinario = (Veterinario) auth.getPrincipal();
 
-        prontuarioService.atualizar(id, prontuarioRequest, veterinario);
-        return ResponseEntity.ok().build();
+        var alterarProntuarioResult = prontuarioService.atualizar(id, prontuarioRequest, veterinario);
+        return alterarProntuarioResult ? ResponseEntity.ok("Atualizado com sucesso!") : ResponseEntity.notFound().build();
     }
 }
 

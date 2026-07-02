@@ -86,7 +86,6 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda', embe
         const lista = await listarTutores();
         setApiTutors(lista);
       } catch {
-        setApiTutors([]);
         showToast('Nao foi possivel carregar os tutores.');
       }
     };
@@ -639,7 +638,7 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda', embe
 
     try {
       if (editingTutorId) {
-        const tutorAtualizado = await atualizarTutorComFallback(Number(editingTutorId), {
+        await atualizarTutorComFallback(Number(editingTutorId), {
           nome: tutorForm.name,
           email: tutorForm.email,
           telefone: tutorForm.phone,
@@ -648,12 +647,12 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda', embe
           endereco,
           status: 'ATIVO',
         });
-        setApiTutors((prev) => prev.map((item) => (item.id === editingTutorId ? tutorAtualizado : item)));
+        setApiTutors(await listarTutores());
         setNotifications([...notifications, { id: Date.now().toString(), message: `Tutor "${tutorForm.name}" atualizado com sucesso`, type: 'edicao' }]);
         setHasUnread(true);
         showToast('Tutor atualizado com sucesso!');
       } else {
-        const tutorCriado = await criarTutorComFallback({
+        await criarTutorComFallback({
           nome: tutorForm.name,
           email: tutorForm.email,
           telefone: tutorForm.phone,
@@ -662,7 +661,7 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda', embe
           endereco,
           status: 'ATIVO',
         });
-        setApiTutors((prev) => [...prev, tutorCriado]);
+        setApiTutors(await listarTutores());
         setNotifications([...notifications, { id: Date.now().toString(), message: `Tutor "${tutorForm.name}" cadastrado com sucesso`, type: 'cadastro' }]);
         setHasUnread(true);
         showToast('Tutor cadastrado com sucesso!');
@@ -814,7 +813,7 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda', embe
     const tutor = apiTutors.find(t => t.id === id);
     try {
       await excluirTutorComFallback(Number(id));
-      setApiTutors((prev) => prev.filter((item) => item.id !== id));
+      setApiTutors(await listarTutores());
     } catch {
       showToast('Nao foi possivel remover o tutor.');
       return;
