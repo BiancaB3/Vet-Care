@@ -129,10 +129,6 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda', embe
   };
 
   const extractErrorMessage = (error: unknown): string | null => {
-    if (error instanceof Error && error.message.trim().length > 0) {
-      return error.message;
-    }
-
     if (axios.isAxiosError(error)) {
       const backendData = error.response?.data;
 
@@ -159,6 +155,14 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda', embe
       ) {
         return backendData.mensagem;
       }
+
+      if (typeof error.message === 'string' && error.message.trim().length > 0) {
+        return error.message;
+      }
+    }
+
+    if (error instanceof Error && error.message.trim().length > 0) {
+      return error.message;
     }
 
     return null;
@@ -257,7 +261,11 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda', embe
 
     setIsCepLoading(true);
     try {
-      const endereco = await buscarEnderecoPorCep(cepNormalizado);
+      const endereco =
+        typeof buscarEnderecoPorCep === 'function'
+          ? await buscarEnderecoPorCep(cepNormalizado)
+          : (await api.get(`api/enderecos/${cepNormalizado}`)).data;
+
       setTutorForm((prev) => ({
         ...prev,
         cep: formatCep(cepNormalizado),
@@ -296,7 +304,19 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda', embe
       }
 
       console.error('Nao foi possivel consultar o CEP informado.', error);
-      showToast(extractErrorMessage(error) ?? 'Nao foi possivel consultar o CEP informado.');
+
+      const rawMessage = extractErrorMessage(error);
+      const isTechnicalMessage =
+        rawMessage != null &&
+        (rawMessage.includes('is not a function') ||
+          rawMessage.includes('buscarEnderecoPorCep') ||
+          rawMessage.includes('WEBPACK_IMPORTED_MODULE'));
+
+      showToast(
+        isTechnicalMessage
+          ? 'Nao foi possivel consultar o CEP informado. Tente novamente.'
+          : rawMessage ?? 'Nao foi possivel consultar o CEP informado.'
+      );
     } finally {
       setIsCepLoading(false);
     }
