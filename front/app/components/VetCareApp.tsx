@@ -50,6 +50,16 @@ type VetCareAppProps = {
   embedded?: boolean;
 };
 
+type TutorPayloadInput = {
+  nome: string;
+  email: string;
+  telefone: string;
+  cpf: string;
+  cep: string;
+  endereco: string;
+  status: 'ATIVO';
+};
+
 const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda', embedded = false }) => {
   const { currentVet, login, logout, pets, addPet, updatePet, deletePet, appointments, addAppointment, updateAppointment, deleteAppointment, updateAppointmentStatus, consultations, addConsultation, updateConsultation, deleteConsultation } = useVet();
   const { getDraft, salvarProgresso, limparRascunho, temRascunho } = useDraft();
@@ -251,6 +261,46 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda', embe
       .filter((item) => item.length > 0);
 
     return base.join(' - ');
+  };
+
+  const mapTutorPayloadToModel = (id: string, payload: TutorPayloadInput): Tutor => ({
+    id,
+    vetId: 'api',
+    name: payload.nome,
+    email: payload.email,
+    phone: payload.telefone,
+    cpf: payload.cpf,
+    cep: payload.cep,
+    endereco: payload.endereco,
+    createdAt: new Date(),
+  });
+
+  const criarTutorComFallback = async (payload: TutorPayloadInput): Promise<Tutor> => {
+    if (typeof criarTutor === 'function') {
+      return criarTutor(payload);
+    }
+
+    const response = await api.post<{ id: number }>('/tutores', payload);
+    const createdId = response.data?.id != null ? String(response.data.id) : Date.now().toString();
+    return mapTutorPayloadToModel(createdId, payload);
+  };
+
+  const atualizarTutorComFallback = async (id: number, payload: TutorPayloadInput): Promise<Tutor> => {
+    if (typeof atualizarTutor === 'function') {
+      return atualizarTutor(id, payload);
+    }
+
+    await api.put(`/tutores/${id}`, payload);
+    return mapTutorPayloadToModel(String(id), payload);
+  };
+
+  const excluirTutorComFallback = async (id: number): Promise<void> => {
+    if (typeof excluirTutor === 'function') {
+      await excluirTutor(id);
+      return;
+    }
+
+    await api.delete(`/tutores/${id}`);
   };
 
   const preencherEnderecoPorCep = async (cepValue: string) => {
@@ -589,7 +639,7 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda', embe
 
     try {
       if (editingTutorId) {
-        const tutorAtualizado = await atualizarTutor(Number(editingTutorId), {
+        const tutorAtualizado = await atualizarTutorComFallback(Number(editingTutorId), {
           nome: tutorForm.name,
           email: tutorForm.email,
           telefone: tutorForm.phone,
@@ -603,7 +653,7 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda', embe
         setHasUnread(true);
         showToast('Tutor atualizado com sucesso!');
       } else {
-        const tutorCriado = await criarTutor({
+        const tutorCriado = await criarTutorComFallback({
           nome: tutorForm.name,
           email: tutorForm.email,
           telefone: tutorForm.phone,
@@ -763,7 +813,7 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda', embe
   const handleDeleteTutor = async (id: string) => {
     const tutor = apiTutors.find(t => t.id === id);
     try {
-      await excluirTutor(Number(id));
+      await excluirTutorComFallback(Number(id));
       setApiTutors((prev) => prev.filter((item) => item.id !== id));
     } catch {
       showToast('Nao foi possivel remover o tutor.');
