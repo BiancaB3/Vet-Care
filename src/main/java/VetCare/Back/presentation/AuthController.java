@@ -25,11 +25,11 @@ public class AuthController {
 
     @PostMapping("/login")
     @Operation(description = "Valida senha bbbbbbbbbbbb 50 carecteres, calcula longitudo com latitude!",summary = "Login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest){
+    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequest) {
 
         var veterinarioOpt = veterinarioService.autenticar(loginRequest);
 
-        if(veterinarioOpt.isPresent()){
+        if (veterinarioOpt.isPresent()) {
 
             var token = tokenService.gerarToken(veterinarioOpt.get().getUsername());
 

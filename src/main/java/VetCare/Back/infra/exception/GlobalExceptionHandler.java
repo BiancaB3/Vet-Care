@@ -3,6 +3,7 @@ package VetCare.Back.infra.exception;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -48,6 +49,23 @@ public class GlobalExceptionHandler {
         }
 
         return build(HttpStatus.BAD_REQUEST, mensagem, request.getRequestURI());
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ApiErrorResponse> handleDataIntegrity(DataIntegrityViolationException ex, HttpServletRequest request) {
+        String mensagem = ex.getMostSpecificCause() != null && ex.getMostSpecificCause().getMessage() != null
+                ? ex.getMostSpecificCause().getMessage().toLowerCase()
+                : "";
+
+        HttpStatus status = mensagem.contains("duplicate") || mensagem.contains("unique")
+                ? HttpStatus.CONFLICT
+                : HttpStatus.BAD_REQUEST;
+
+        String resposta = status == HttpStatus.CONFLICT
+                ? "Ja existe um registro com estes dados."
+                : "Nao foi possivel concluir a operacao.";
+
+        return build(status, resposta, request.getRequestURI());
     }
 
     @ExceptionHandler(Exception.class)

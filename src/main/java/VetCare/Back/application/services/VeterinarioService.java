@@ -1,12 +1,17 @@
 package VetCare.Back.application.services;
 
 import VetCare.Back.application.DTO.LoginRequest;
+import VetCare.Back.application.DTO.VeterinarioCadastroRequest;
+import VetCare.Back.application.DTO.VeterinarioResponse;
+import VetCare.Back.application.DTO.VeterinarioUpdateRequest;
 import VetCare.Back.domain.entities.Veterinario;
 import VetCare.Back.domain.repository.VeterinarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Service
@@ -17,6 +22,29 @@ public class VeterinarioService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    public List<VeterinarioResponse> listarTodos() {
+        return veterinarioRepository.findAll().stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    public VeterinarioResponse buscarPorId(Long id) {
+        return veterinarioRepository.findById(id)
+                .map(this::toResponse)
+                .orElse(null);
+    }
+
+    public VeterinarioResponse cadastrar(VeterinarioCadastroRequest request) {
+        return toResponse(salvar(toEntity(request)));
+    }
+
+    public void atualizar(Long id, VeterinarioUpdateRequest request) {
+        var veterinarioAtual = veterinarioRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Veterinario nao encontrado."));
+
+        atualizar(veterinarioAtual, toEntity(request));
+    }
 
     public Optional<Veterinario> autenticar(LoginRequest loginRequest) {
         return veterinarioRepository.findByEmail(loginRequest.email())
@@ -70,9 +98,42 @@ public class VeterinarioService {
         return passwordEncoder.encode(senha);
     }
 
+    private Veterinario toEntity(VeterinarioCadastroRequest request) {
+        var veterinario = new Veterinario();
+        veterinario.setNome(request.nome().trim());
+        veterinario.setCrmv(request.crmv().trim());
+        veterinario.setEspecialidade(request.especialidade() != null ? request.especialidade().trim() : null);
+        veterinario.setTelefone(request.telefone() != null ? request.telefone().trim() : null);
+        veterinario.setEmail(request.email().trim());
+        veterinario.setSenha(request.senha());
+        return veterinario;
+    }
+
+    private Veterinario toEntity(VeterinarioUpdateRequest request) {
+        var veterinario = new Veterinario();
+        veterinario.setNome(request.nome().trim());
+        veterinario.setCrmv(request.crmv().trim());
+        veterinario.setEspecialidade(request.especialidade() != null ? request.especialidade().trim() : null);
+        veterinario.setTelefone(request.telefone() != null ? request.telefone().trim() : null);
+        veterinario.setEmail(request.email().trim());
+        veterinario.setSenha(request.senha());
+        return veterinario;
+    }
+
     private boolean isSenhaCodificada(String senha) {
         return senha.startsWith("$2a$")
                 || senha.startsWith("$2b$")
                 || senha.startsWith("$2y$");
+    }
+
+    private VeterinarioResponse toResponse(Veterinario veterinario) {
+        return new VeterinarioResponse(
+                veterinario.getId(),
+                veterinario.getNome(),
+                veterinario.getCrmv(),
+                veterinario.getEspecialidade(),
+                veterinario.getTelefone(),
+                veterinario.getEmail()
+        );
     }
 }

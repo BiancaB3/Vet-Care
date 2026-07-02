@@ -6,7 +6,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
@@ -22,23 +21,23 @@ public class SecurityConfiguration {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http.cors(Customizer.withDefaults())
-                .csrf(AbstractHttpConfigurer::disable)
-                .httpBasic(AbstractHttpConfigurer::disable)
+                .csrf(csrf -> csrf.disable())
+                .httpBasic(httpBasic -> httpBasic.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/auth/login",
-                                "/swagger-ui/**",
-                                "/swagger-ui.html",
-                                "/webjars/**",
-                                "/swagger-resources/**",
-                                "/v2/api-docs/**",
-                                "/v3/api-docs/**",
-                                "/v3/api-docs"
+                                PublicApiPaths.AUTH_LOGIN,
+                                PublicApiPaths.SWAGGER_UI,
+                                PublicApiPaths.SWAGGER_UI_HTML,
+                                PublicApiPaths.WEBJARS,
+                                PublicApiPaths.SWAGGER_RESOURCES,
+                                PublicApiPaths.V2_API_DOCS,
+                                PublicApiPaths.V3_API_DOCS,
+                                PublicApiPaths.V3_API_DOCS_ROOT
                         ).permitAll()
                         .requestMatchers(
                                 HttpMethod.POST,
-                                "/veterinarios/cadastro"
+                                PublicApiPaths.VETERINARIOS_CADASTRO
                         ).permitAll()
                         .anyRequest().authenticated()
                 )

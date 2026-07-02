@@ -8,7 +8,6 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -74,14 +73,6 @@ public class JwtFilter extends OncePerRequestFilter {
     }
 
     private boolean isPublicPath(String path, String method) {
-        return path.equals("/auth/login")
-                || path.startsWith("/swagger-ui")
-                || path.startsWith("/webjars")
-                || path.startsWith("/swagger-resources")
-                || path.startsWith("/v3/api-docs")
-                || path.startsWith("/v2/api-docs")
-                || path.equals("/swagger-ui.html")
-                || (path.equals("/veterinarios/cadastro") && HttpMethod.POST.matches(method))
-                || HttpMethod.OPTIONS.matches(method);
+        return PublicApiPaths.isPublic(path, method);
     }
 }
