@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { useDispatch } from 'react-redux';
 import { useVet, Veterinarian, Tutor, Pet, Appointment, Consultation } from '../types/VetContext';
+import { useAuth } from '../types/AuthContext';
 import {
   useDraft,
   emptyDraftByKind,
@@ -20,7 +21,7 @@ import {
 } from '../types/DraftContext';
 import api from '../services/api';
 import { loginService } from '../services/authService';
-import { listarTutores, criarTutor, atualizarTutor, excluirTutor, buscarEnderecoPorCep } from '../services/tutorService';
+import { criarTutor, atualizarTutor, excluirTutor, buscarEnderecoPorCep } from '../services/tutorService';
 import { setToken, setUsuario } from '../redux/slices/authSlice';
 import VetCareAuthPanel from './VetCareAuthPanel';
 import VetCareDashboardHeader from './VetCareDashboardHeader';
@@ -43,6 +44,16 @@ interface VeterinarioApi {
   email: string;
 }
 
+interface TutorApiResponse {
+  id: number;
+  nome: string;
+  email: string;
+  telefone: string;
+  cpf?: string | null;
+  cep?: string | null;
+  endereco?: string | null;
+}
+
 const emptyAppointmentForm = (): AppointmentDraft => emptyDraftByKind('appointment');
 
 type VetCareAppProps = {
@@ -62,6 +73,7 @@ type TutorPayloadInput = {
 
 const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda', embedded = false }) => {
   const { currentVet, login, logout, pets, addPet, updatePet, deletePet, appointments, addAppointment, updateAppointment, deleteAppointment, updateAppointmentStatus, consultations, addConsultation, updateConsultation, deleteConsultation } = useVet();
+  const { token } = useAuth();
   const { getDraft, salvarProgresso, limparRascunho, temRascunho } = useDraft();
   const dispatch = useDispatch();
   const skipDraftSaveRef = useRef<Record<DraftKind, boolean>>({
@@ -83,7 +95,7 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda', embe
       }
 
       try {
-        const lista = await listarTutores();
+        const lista = await carregarTutoresDaApi();
         setApiTutors(lista);
       } catch {
         showToast('Nao foi possivel carregar os tutores.');
@@ -91,7 +103,7 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda', embe
     };
 
     carregarTutores();
-  }, [currentVet]);
+  }, [currentVet, token]);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [editingConsultationId, setEditingConsultationId] = useState<string | null>(null);
@@ -127,6 +139,21 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda', embe
   const [appointmentForm, setAppointmentForm] = useState<AppointmentDraft>(emptyAppointmentForm());
   const [petForm, setPetForm] = useState<PetDraft>(() => emptyDraftByKind('pet'));
   const [consultationForm, setConsultationForm] = useState<ConsultationDraft>(() => emptyDraftByKind('consultation'));
+
+  const carregarTutoresDaApi = async (): Promise<Tutor[]> => {
+    const response = await api.get<TutorApiResponse[]>('/tutores');
+    return response.data.map((item) => ({
+      id: String(item.id),
+      vetId: currentVet?.id ?? 'api',
+      name: item.nome,
+      email: item.email,
+      phone: item.telefone,
+      cpf: item.cpf ?? '',
+      cep: item.cep ?? '',
+      endereco: item.endereco ?? '',
+      createdAt: new Date(),
+    }));
+  };
 
   useEffect(() => {
     setActiveSection(initialSection);
@@ -656,7 +683,7 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda', embe
         });
 
         try {
-          setApiTutors(await listarTutores());
+          setApiTutors(await carregarTutoresDaApi());
         } catch (reloadError) {
           console.error('Falha ao recarregar lista de tutores apos atualizacao.', reloadError);
           showToast('Tutor atualizado, mas nao foi possivel recarregar a lista agora.');
@@ -677,7 +704,7 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda', embe
         });
 
         try {
-          setApiTutors(await listarTutores());
+          setApiTutors(await carregarTutoresDaApi());
         } catch (reloadError) {
           console.error('Falha ao recarregar lista de tutores apos cadastro.', reloadError);
           showToast('Tutor cadastrado, mas nao foi possivel recarregar a lista agora.');
@@ -834,7 +861,7 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda', embe
     const tutor = apiTutors.find(t => t.id === id);
     try {
       await excluirTutorComFallback(Number(id));
-      setApiTutors(await listarTutores());
+      setApiTutors(await carregarTutoresDaApi());
     } catch {
       showToast('Nao foi possivel remover o tutor.');
       return;

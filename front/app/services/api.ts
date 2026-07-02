@@ -1,4 +1,5 @@
 import axios from 'axios';
+import Cookies from 'js-cookie';
 import { store } from '../redux/store';
 import { logout } from '../redux/slices/authSlice';
 
@@ -7,7 +8,7 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  const token = store.getState().auth.token;
+  const token = store.getState().auth.token || Cookies.get('token') || '';
 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
