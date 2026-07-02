@@ -13,6 +13,7 @@ final class PublicApiPaths {
     static final String V3_API_DOCS = "/v3/api-docs/**";
     static final String V3_API_DOCS_ROOT = "/v3/api-docs";
     static final String VETERINARIOS_CADASTRO = "/veterinarios/cadastro";
+    static final String ENDERECOS = "/api/enderecos";
 
     private PublicApiPaths() {
     }
@@ -24,6 +25,7 @@ final class PublicApiPaths {
                 || path.startsWith("/swagger-resources")
                 || path.startsWith("/v3/api-docs")
                 || path.startsWith("/v2/api-docs")
+                || path.startsWith(ENDERECOS)
                 || SWAGGER_UI_HTML.equals(path)
                 || (VETERINARIOS_CADASTRO.equals(path) && HttpMethod.POST.matches(method))
                 || HttpMethod.OPTIONS.matches(method);

@@ -6,6 +6,7 @@ import VetCare.Back.application.services.TutorService;
 import VetCare.Back.domain.entities.Veterinario;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -40,7 +41,7 @@ public class TutorController {
 
     @PostMapping
     @Operation(summary = "Cadastrar tutor", description = "Cadastra um novo tutor no sistema.")
-    public ResponseEntity<TutorResponse> salvar(@RequestBody TutorRequest tutorRequest, Authentication auth) {
+    public ResponseEntity<TutorResponse> salvar(@Valid @RequestBody TutorRequest tutorRequest, Authentication auth) {
         Veterinario veterinario = (Veterinario) auth.getPrincipal();
 
         return ResponseEntity.status(HttpStatus.CREATED).body(tutorService.salvar(tutorRequest, veterinario));
@@ -48,7 +49,7 @@ public class TutorController {
 
     @PutMapping("/{id}")
     @Operation(summary = "Atualizar tutor", description = "Atualiza os dados de um tutor existente.")
-    public ResponseEntity<?> atualizar(@PathVariable Long id, @RequestBody TutorRequest tutorRequest, Authentication auth) {
+    public ResponseEntity<?> atualizar(@PathVariable Long id, @Valid @RequestBody TutorRequest tutorRequest, Authentication auth) {
         Veterinario veterinario = (Veterinario) auth.getPrincipal();
 
         tutorService.atualizar(id, tutorRequest, veterinario);

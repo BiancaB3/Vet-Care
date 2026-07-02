@@ -128,6 +128,42 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda', embe
     setTimeout(() => setToast({ message: '', show: false }), 3000);
   };
 
+  const extractErrorMessage = (error: unknown): string | null => {
+    if (error instanceof Error && error.message.trim().length > 0) {
+      return error.message;
+    }
+
+    if (axios.isAxiosError(error)) {
+      const backendData = error.response?.data;
+
+      if (typeof backendData === 'string' && backendData.trim().length > 0) {
+        return backendData;
+      }
+
+      if (
+        typeof backendData === 'object' &&
+        backendData !== null &&
+        'message' in backendData &&
+        typeof backendData.message === 'string' &&
+        backendData.message.trim().length > 0
+      ) {
+        return backendData.message;
+      }
+
+      if (
+        typeof backendData === 'object' &&
+        backendData !== null &&
+        'mensagem' in backendData &&
+        typeof backendData.mensagem === 'string' &&
+        backendData.mensagem.trim().length > 0
+      ) {
+        return backendData.mensagem;
+      }
+    }
+
+    return null;
+  };
+
   const formatPhone = (value: string) => {
     const digits = value.replace(/\D/g, '');
     if (digits.length <= 2) return `(${digits}`;
@@ -148,6 +184,14 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda', embe
     const digits = value.replace(/\D/g, '').slice(0, 8);
     if (digits.length <= 5) return digits;
     return `${digits.slice(0, 5)}-${digits.slice(5)}`;
+  };
+
+  const handleTutorFormChange = (next: typeof tutorForm) => {
+    setTutorForm({
+      ...next,
+      cpf: formatCpf(next.cpf),
+      cep: formatCep(next.cep),
+    });
   };
 
   const onlyDigits = (value: string) => value.replace(/\D/g, '');
@@ -223,8 +267,36 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda', embe
         state: endereco.uf ?? '',
       }));
     } catch (error) {
+      try {
+        // Fallback: consulta direta no ViaCEP quando houver falha de backend/rede.
+        const response = await fetch(`https://viacep.com.br/ws/${cepNormalizado}/json/`);
+        if (response.ok) {
+          const data: {
+            erro?: boolean;
+            logradouro?: string;
+            bairro?: string;
+            localidade?: string;
+            uf?: string;
+          } = await response.json();
+
+          if (!data.erro) {
+            setTutorForm((prev) => ({
+              ...prev,
+              cep: formatCep(cepNormalizado),
+              street: data.logradouro ?? '',
+              district: data.bairro ?? '',
+              city: data.localidade ?? '',
+              state: data.uf ?? '',
+            }));
+            return;
+          }
+        }
+      } catch (fallbackError) {
+        console.error('Falha no fallback de consulta de CEP.', fallbackError);
+      }
+
       console.error('Nao foi possivel consultar o CEP informado.', error);
-      showToast('Nao foi possivel consultar o CEP informado.');
+      showToast(extractErrorMessage(error) ?? 'Nao foi possivel consultar o CEP informado.');
     } finally {
       setIsCepLoading(false);
     }
@@ -525,8 +597,8 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda', embe
         setHasUnread(true);
         showToast('Tutor cadastrado com sucesso!');
       }
-    } catch {
-      showToast('Nao foi possivel salvar o tutor.');
+    } catch (error: unknown) {
+      showToast(extractErrorMessage(error) ?? 'Nao foi possivel salvar o tutor.');
       return;
     }
 
@@ -898,7 +970,7 @@ const VetCareApp: React.FC<VetCareAppProps> = ({ initialSection = 'agenda', embe
               editingTutorId={editingTutorId}
               onClose={closeModal}
               onSubmit={handleAddTutor}
-              onTutorFormChange={setTutorForm}
+              onTutorFormChange={handleTutorFormChange}
               onTutorPhotoChange={setTutorPhoto}
               onTutorPhotoClear={() => setTutorPhoto('')}
               onCepBlur={preencherEnderecoPorCep}

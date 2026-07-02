@@ -36,6 +36,10 @@ public class SecurityConfiguration {
                                 PublicApiPaths.V3_API_DOCS_ROOT
                         ).permitAll()
                         .requestMatchers(
+                                HttpMethod.GET,
+                                PublicApiPaths.ENDERECOS + "/**"
+                        ).permitAll()
+                        .requestMatchers(
                                 HttpMethod.POST,
                                 PublicApiPaths.VETERINARIOS_CADASTRO
                         ).permitAll()
