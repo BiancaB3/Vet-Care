@@ -1,26 +1,73 @@
-﻿'use client';
+'use client';
 
 import { useState } from 'react';
-import { Calendar, CalendarX, CheckCircle, Search, Trash2, User, X } from 'lucide-react';
-import type { Appointment, Pet, Tutor } from '../types/VetContext';
+import { Calendar, CalendarX, CheckCircle, Search, User, X } from 'lucide-react';
+import type { EnumStatusAgendamento, AgendamentoResponse } from '../types/agendamento';
+import type { PetResponse } from '../types/pet';
+import type { TutorResponse } from '../types/tutor';
+
+export type StatusFilter = 'all' | EnumStatusAgendamento;
 
 export type VetCareAgendaSectionProps = {
-  currentVetAppointments: Appointment[];
-  currentVetPets: Pet[];
-  currentVetTutors: Tutor[];
+  currentVetAppointments: AgendamentoResponse[];
+  currentVetPets: PetResponse[];
+  currentVetTutors: TutorResponse[];
   agendaView: 'list' | 'calendar';
   searchQuery: string;
-  statusFilter: 'all' | 'agendado' | 'concluido' | 'cancelado';
-  appointmentDetailsModal: string | null;
+  statusFilter: StatusFilter;
+  appointmentDetailsModal: number | null;
   onSetAgendaView: (value: 'list' | 'calendar') => void;
   onSearchQueryChange: (value: string) => void;
-  onStatusFilterChange: (value: 'all' | 'agendado' | 'concluido' | 'cancelado') => void;
+  onStatusFilterChange: (value: StatusFilter) => void;
   onOpenAppointmentModal: () => void;
-  onSetAppointmentDetailsModal: (value: string | null) => void;
-  onDeleteAppointment: (id: string) => void;
+  onSetAppointmentDetailsModal: (value: number | null) => void;
+  onConfirmar: (agendamento: AgendamentoResponse) => void;
 };
 
-function CalendarView({ appointments, pets, onDeleteAppointment }: { appointments: Appointment[]; pets: Pet[]; onDeleteAppointment: (id: string) => void }) {
+function statusLabel(status: EnumStatusAgendamento): string {
+  switch (status) {
+    case 'AGENDADO':
+      return 'Agendado';
+    case 'CONFIRMADO':
+      return 'Confirmado';
+    case 'CANCELADO':
+      return 'Cancelado';
+    case 'REALIZADO':
+      return 'Realizado';
+    default:
+      return status;
+  }
+}
+
+function statusBadgeClasses(status: EnumStatusAgendamento): string {
+  switch (status) {
+    case 'CONFIRMADO':
+      return 'bg-green-100 text-green-800';
+    case 'CANCELADO':
+      return 'bg-red-100 text-red-800';
+    case 'REALIZADO':
+      return 'bg-blue-100 text-blue-800';
+    case 'AGENDADO':
+    default:
+      return 'bg-yellow-100 text-yellow-800';
+  }
+}
+
+function dataHoraToDateStr(dataHora: string): string {
+  return dataHora.slice(0, 10);
+}
+
+function dataHoraToTimeStr(dataHora: string): string {
+  return dataHora.slice(11, 16);
+}
+
+function CalendarView({
+  appointments,
+  pets,
+}: {
+  appointments: AgendamentoResponse[];
+  pets: PetResponse[];
+}) {
   const [currentDate, setCurrentDate] = useState(new Date());
 
   const monthNames = [
@@ -51,7 +98,7 @@ function CalendarView({ appointments, pets, onDeleteAppointment }: { appointment
 
   const getAppointmentsForDate = (day: number) => {
     const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-    return appointments.filter((apt) => apt.date === dateStr);
+    return appointments.filter((apt) => dataHoraToDateStr(apt.dataHora) === dateStr);
   };
 
   const navigateMonth = (direction: 'prev' | 'next') => {
@@ -105,10 +152,10 @@ function CalendarView({ appointments, pets, onDeleteAppointment }: { appointment
                   return (
                     <div
                       key={apt.id}
-                      className={`text-xs p-1 rounded truncate ${apt.confirmed ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}
-                      title={`${pet?.name || 'Pet'}: ${apt.reason} - ${apt.time} (${apt.confirmed ? 'Confirmado' : 'Pendente'})`}
+                      className={`text-xs p-1 rounded truncate ${statusBadgeClasses(apt.status)}`}
+                      title={`${pet?.nome || 'Pet'}: ${apt.observacoes} - ${dataHoraToTimeStr(apt.dataHora)} (${statusLabel(apt.status)})`}
                     >
-                      {pet?.name || 'Pet'} - {apt.time}
+                      {pet?.nome || 'Pet'} - {dataHoraToTimeStr(apt.dataHora)}
                     </div>
                   );
                 })}
@@ -135,12 +182,12 @@ export default function VetCareAgendaSection({
   onStatusFilterChange,
   onOpenAppointmentModal,
   onSetAppointmentDetailsModal,
-  onDeleteAppointment,
+  onConfirmar,
 }: VetCareAgendaSectionProps) {
   const filteredAppointments = currentVetAppointments.filter((apt) => {
     const pet = currentVetPets.find((p) => p.id === apt.petId);
     if (searchQuery) {
-      const name = pet?.name.toLowerCase() || '';
+      const name = pet?.nome.toLowerCase() || '';
       if (!name.includes(searchQuery.toLowerCase())) return false;
     }
     if (statusFilter !== 'all' && apt.status !== statusFilter) return false;
@@ -192,13 +239,14 @@ export default function VetCareAgendaSection({
         </div>
         <select
           value={statusFilter}
-          onChange={(e) => onStatusFilterChange(e.target.value as 'all' | 'agendado' | 'concluido' | 'cancelado')}
+          onChange={(e) => onStatusFilterChange(e.target.value as StatusFilter)}
           className="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:border-primary font-medium"
         >
           <option value="all">Todos</option>
-          <option value="agendado">Agendado</option>
-          <option value="concluido">Concluido</option>
-          <option value="cancelado">Cancelado</option>
+          <option value="AGENDADO">Agendado</option>
+          <option value="CONFIRMADO">Confirmado</option>
+          <option value="REALIZADO">Realizado</option>
+          <option value="CANCELADO">Cancelado</option>
         </select>
       </div>
 
@@ -218,19 +266,16 @@ export default function VetCareAgendaSection({
                     <div className="flex items-center gap-4">
                       <Calendar className="w-6 h-6 text-primary" />
                       <div>
-                        <h4 className="font-semibold text-text">{pet?.name || 'Pet'}</h4>
-                        <p className="text-xs text-slate-500">{apt.date} - {apt.time}</p>
-                        <p className="text-xs text-slate-400">{apt.reason}</p>
+                        <h4 className="font-semibold text-text">{pet?.nome || 'Pet'}</h4>
+                        <p className="text-xs text-slate-500">{dataHoraToDateStr(apt.dataHora)} - {dataHoraToTimeStr(apt.dataHora)}</p>
+                        <p className="text-xs text-slate-400">{apt.observacoes}</p>
                         <div className="flex items-center gap-2 mt-1">
-                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${apt.confirmed ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
-                            {apt.confirmed ? 'Confirmado' : 'Pendente'}
+                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${statusBadgeClasses(apt.status)}`}>
+                            {statusLabel(apt.status)}
                           </span>
                         </div>
                       </div>
                     </div>
-                    <button onClick={(e) => { e.stopPropagation(); onDeleteAppointment(apt.id); }} className="p-2 hover:bg-red-50 rounded-lg">
-                      <Trash2 className="w-4 h-4 text-slate-400 hover:text-red-500" />
-                    </button>
                   </div>
                 </div>
               );
@@ -239,11 +284,11 @@ export default function VetCareAgendaSection({
         )
       ) : (
         <div className="bg-white rounded-xl border border-slate-200 p-6">
-          <CalendarView appointments={currentVetAppointments} pets={currentVetPets} onDeleteAppointment={onDeleteAppointment} />
+          <CalendarView appointments={currentVetAppointments} pets={currentVetPets} />
         </div>
       )}
 
-      {appointmentDetailsModal && (() => {
+      {appointmentDetailsModal != null && (() => {
         const appointment = currentVetAppointments.find((a) => a.id === appointmentDetailsModal);
         const pet = appointment ? currentVetPets.find((p) => p.id === appointment.petId) : null;
         const tutor = pet ? currentVetTutors.find((t) => t.id === pet.tutorId) : null;
@@ -251,8 +296,8 @@ export default function VetCareAgendaSection({
         if (!appointment || !pet || !tutor) return null;
 
         const handleWhatsAppMessage = () => {
-          const message = `Ola ${tutor.name}! Lembrando da consulta do ${pet.name} agendada para ${appointment.date} as ${appointment.time}. Motivo: ${appointment.reason}. ${appointment.confirmed ? 'Consulta confirmada!' : 'Aguardando confirmacao.'}`;
-          const whatsappUrl = `https://wa.me/55${tutor.phone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
+          const message = `Ola ${tutor.nome}! Lembrando da consulta do ${pet.nome} agendada para ${dataHoraToDateStr(appointment.dataHora)} as ${dataHoraToTimeStr(appointment.dataHora)}. Motivo: ${appointment.observacoes}. ${appointment.status === 'CONFIRMADO' ? 'Consulta confirmada!' : 'Aguardando confirmacao.'}`;
+          const whatsappUrl = `https://wa.me/55${tutor.telefone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
           window.open(whatsappUrl, '_blank');
         };
 
@@ -272,34 +317,44 @@ export default function VetCareAgendaSection({
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-semibold text-slate-600 mb-1">Data</label>
-                    <p className="text-lg font-medium text-slate-900">{appointment.date}</p>
+                    <p className="text-lg font-medium text-slate-900">{dataHoraToDateStr(appointment.dataHora)}</p>
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-slate-600 mb-1">Horario</label>
-                    <p className="text-lg font-medium text-slate-900">{appointment.time}</p>
+                    <p className="text-lg font-medium text-slate-900">{dataHoraToTimeStr(appointment.dataHora)}</p>
                   </div>
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-slate-600 mb-1">Pet</label>
-                  <p className="text-lg font-medium text-slate-900">{pet.name}</p>
+                  <p className="text-lg font-medium text-slate-900">{pet.nome}</p>
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-slate-600 mb-1">Tutor</label>
-                  <p className="text-lg font-medium text-slate-900">{tutor.name}</p>
+                  <p className="text-lg font-medium text-slate-900 flex items-center gap-2">
+                    <User className="w-4 h-4 text-slate-400" /> {tutor.nome}
+                  </p>
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-slate-600 mb-1">Descricao</label>
-                  <p className="text-slate-700">{appointment.reason}</p>
+                  <p className="text-slate-700">{appointment.observacoes}</p>
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-slate-600 mb-1">Status</label>
                   <div className="flex items-center gap-3">
-                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${appointment.confirmed ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
-                      {appointment.confirmed ? <CheckCircle className="w-4 h-4 mr-1" /> : null}
-                      {appointment.confirmed ? 'Confirmado' : 'Pendente'}
+                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${statusBadgeClasses(appointment.status)}`}>
+                      {appointment.status === 'CONFIRMADO' || appointment.status === 'REALIZADO' ? <CheckCircle className="w-4 h-4 mr-1" /> : null}
+                      {statusLabel(appointment.status)}
                     </span>
                   </div>
                 </div>
+                {appointment.status === 'AGENDADO' && (
+                  <button
+                    onClick={() => onConfirmar(appointment)}
+                    className="w-full py-3.5 bg-primary hover:bg-primary/90 text-white font-bold rounded-xl transition-all shadow-lg"
+                  >
+                    Confirmar Consulta
+                  </button>
+                )}
                 <button
                   onClick={handleWhatsAppMessage}
                   className="w-full py-3.5 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl transition-all shadow-lg"
@@ -314,4 +369,3 @@ export default function VetCareAgendaSection({
     </section>
   );
 }
-
