@@ -4,14 +4,12 @@ import VetCare.Back.application.DTO.TutorRequest;
 import VetCare.Back.application.DTO.TutorResponse;
 import VetCare.Back.domain.entities.Tutor;
 import VetCare.Back.domain.entities.Veterinario;
-import VetCare.Back.domain.enuns.EnumStatusTutor;
 import VetCare.Back.domain.repository.TutorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
 
 @Service
@@ -100,11 +98,7 @@ public class TutorService {
         tutor.setCpf(request.cpf().replaceAll("\\D", ""));
         tutor.setCep(request.cep().replaceAll("\\D", ""));
         tutor.setEndereco(request.endereco());
-
-        var statusTexto = request.status() == null || request.status().isBlank()
-                ? EnumStatusTutor.ATIVO.name()
-                : request.status().trim().toUpperCase(Locale.ROOT);
-        tutor.setStatus(EnumStatusTutor.valueOf(statusTexto));
+        tutor.setStatus(request.status() == null || request.status().isBlank() ? "ATIVO" : request.status().trim());
         return tutor;
     }
 
@@ -117,7 +111,7 @@ public class TutorService {
                 tutor.getCpf(),
                 tutor.getCep(),
                 tutor.getEndereco(),
-                tutor.getStatus() != null ? tutor.getStatus().name() : null
+                tutor.getStatus()
         );
     }
 
