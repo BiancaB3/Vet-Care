@@ -92,7 +92,7 @@ public class UsuarioController {
         }
 
         int code = conn.getResponseCode();
-        if (code == HttpURLConnection.HTTP_OK) {
+        if (code == HttpURLConnection.HTTP_OK || code == HttpURLConnection.HTTP_CREATED) {
 
             showMenssage("Veterinario cadastrado com sucesso!", Alert.AlertType.INFORMATION);
 
