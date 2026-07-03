@@ -73,7 +73,7 @@ export default function Prontuarios() {
         </div>
         <Link
           href="/prontuarios/novo"
-          className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors shadow-sm"
+          className="inline-flex items-center gap-2 bg-primary hover:bg-secondary text-white px-4 py-2 rounded-lg font-medium transition-colors shadow-sm"
         >
           <span className="text-xl">+</span> Novo Prontuário
         </Link>
@@ -86,7 +86,7 @@ export default function Prontuarios() {
           value={busca}
           onChange={(e) => setBusca(e.target.value)}
           placeholder="Buscar prontuário..."
-          className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 outline-none font-medium"
+          className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:border-primary focus:ring-2 focus:ring-primary outline-none font-medium"
         />
       </div>
 
@@ -122,7 +122,7 @@ export default function Prontuarios() {
                     <td className="px-6 py-4 text-sm text-right space-x-3">
                       <Link
                         href={`/prontuarios/${prontuario.id}/editar`}
-                        className="text-blue-600 hover:text-blue-800 font-medium transition-colors"
+                        className="text-primary hover:text-secondary font-medium transition-colors"
                       >
                         Editar
                       </Link>

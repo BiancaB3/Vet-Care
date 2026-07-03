@@ -60,7 +60,7 @@ export default function RegistrarPage() {
               type="text"
               required
               placeholder="Dr(a). Nome"
-              className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+              className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
             />
           </div>
 
@@ -71,7 +71,7 @@ export default function RegistrarPage() {
               type="text"
               required
               placeholder="CRMV-XX/12345"
-              className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+              className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
             />
           </div>
 
@@ -82,7 +82,7 @@ export default function RegistrarPage() {
               type="email"
               required
               placeholder="seu@email.com"
-              className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+              className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
             />
           </div>
 
@@ -93,7 +93,7 @@ export default function RegistrarPage() {
               type="password"
               required
               placeholder="••••••••"
-              className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+              className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
             />
           </div>
 
@@ -107,7 +107,7 @@ export default function RegistrarPage() {
               onChange={(e) => {
                 e.target.value = formatPhone(e.target.value);
               }}
-              className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+              className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
             />
           </div>
 
@@ -120,7 +120,7 @@ export default function RegistrarPage() {
             </Link>
             <button
               type="submit"
-              className="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition-all shadow-lg shadow-blue-200"
+              className="flex-1 px-4 py-2.5 bg-primary hover:bg-secondary text-white font-bold rounded-lg transition-all shadow-lg shadow-primary/30"
             >
               Cadastrar
             </button>

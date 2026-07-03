@@ -14,7 +14,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR">
-      <body className="antialiased bg-gradient-to-br from-slate-50 via-blue-50 to-emerald-50">
+      <body className="antialiased bg-gradient-to-br from-slate-50 via-primary/10 to-emerald-50">
         <StoreProvider>{children}</StoreProvider>
       </body>
     </html>

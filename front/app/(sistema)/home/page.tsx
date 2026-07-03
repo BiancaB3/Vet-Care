@@ -27,7 +27,7 @@ export default function HomePage() {
           <Link
             key={link.href}
             href={link.href}
-            className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:border-blue-400 hover:shadow-md transition-all font-semibold text-slate-700"
+            className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 hover:border-primary hover:shadow-md transition-all font-semibold text-slate-700"
           >
             {link.label}
           </Link>

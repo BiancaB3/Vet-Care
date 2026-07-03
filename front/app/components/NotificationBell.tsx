@@ -16,7 +16,7 @@ export default function NotificationBell() {
     <div className="relative">
       <button
         onClick={() => setOpen((prev) => !prev)}
-        className="relative p-2 hover:bg-blue-700 text-white rounded-xl transition-all"
+        className="relative p-2 hover:bg-secondary text-white rounded-xl transition-all"
       >
         <Bell className="w-5 h-5" />
         {hasUnread && (
@@ -27,7 +27,7 @@ export default function NotificationBell() {
         <div className="absolute right-0 top-12 bg-white border border-slate-200 rounded-xl shadow-xl p-4 w-64 max-h-96 overflow-y-auto z-50 text-slate-900">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <Bell className="w-5 h-5 text-blue-600" />
+              <Bell className="w-5 h-5 text-primary" />
               <h4 className="text-sm font-semibold text-slate-700">Notificações</h4>
             </div>
             <button

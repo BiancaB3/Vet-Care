@@ -39,7 +39,7 @@ export default function TutoresPage() {
         </div>
         <Link
           href="/tutores/novo"
-          className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors shadow-sm"
+          className="inline-flex items-center gap-2 bg-primary hover:bg-secondary text-white px-4 py-2 rounded-lg font-medium transition-colors shadow-sm"
         >
           <UserPlus className="w-5 h-5" /> Novo Tutor
         </Link>
@@ -52,7 +52,7 @@ export default function TutoresPage() {
           value={busca}
           onChange={(e) => setBusca(e.target.value)}
           placeholder="Buscar tutor..."
-          className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none font-medium"
+          className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-primary focus:border-primary outline-none font-medium"
         />
       </div>
 
@@ -73,7 +73,7 @@ export default function TutoresPage() {
                 <tr key={tutor.id} className="hover:bg-slate-50 transition-colors">
                   <td className="px-6 py-4 text-sm font-medium text-slate-800">
                     <div className="flex items-center gap-2">
-                      <User className="w-4 h-4 text-blue-600" />
+                      <User className="w-4 h-4 text-primary" />
                       {tutor.nome}
                     </div>
                   </td>
@@ -93,7 +93,7 @@ export default function TutoresPage() {
                     </Link>
                     <Link
                       href={`/tutores/${tutor.id}/editar`}
-                      className="text-blue-600 hover:text-blue-800 font-medium transition-colors"
+                      className="text-primary hover:text-secondary font-medium transition-colors"
                     >
                       Editar
                     </Link>

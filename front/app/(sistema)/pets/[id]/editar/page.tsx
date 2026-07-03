@@ -38,13 +38,13 @@ export default function EditarPet() {
         <div className="flex flex-col gap-3 mb-8">
           <Link
             href="/pets"
-            className="group flex items-center text-sm font-medium text-slate-500 hover:text-blue-600 transition-colors"
+            className="group flex items-center text-sm font-medium text-slate-500 hover:text-primary transition-colors"
           >
             <span className="mr-2 transition-transform group-hover:-translate-x-1">←</span>
             Voltar para listagem
           </Link>
 
-          <div className="space-y-1 border-l-4 border-blue-500 pl-4">
+          <div className="space-y-1 border-l-4 border-primary pl-4">
             <h1 className="text-3xl font-bold text-slate-900 tracking-tight">
               Editar Pet #{id}
             </h1>

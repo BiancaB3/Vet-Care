@@ -99,7 +99,7 @@ export default function AgendamentoForm() {
                         required
                         value={form.petId}
                         onChange={(e) => handleChange('petId', e.target.value)}
-                        className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 transition-all outline-none"
+                        className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-primary transition-all outline-none"
                     >
                         <option value="">Selecione o pet</option>
                         {pets.map((pet) => (
@@ -119,7 +119,7 @@ export default function AgendamentoForm() {
                         required
                         value={form.date}
                         onChange={(e) => handleChange('date', e.target.value)}
-                        className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 transition-all outline-none"
+                        className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-primary transition-all outline-none"
                     />
                 </div>
 
@@ -132,7 +132,7 @@ export default function AgendamentoForm() {
                         required
                         value={form.time}
                         onChange={(e) => handleChange('time', e.target.value)}
-                        className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 transition-all outline-none"
+                        className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-primary transition-all outline-none"
                     />
                 </div>
 
@@ -146,7 +146,7 @@ export default function AgendamentoForm() {
                         value={form.reason}
                         onChange={(e) => handleChange('reason', e.target.value)}
                         placeholder="Descreva o motivo da consulta"
-                        className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 transition-all outline-none resize-none"
+                        className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-primary transition-all outline-none resize-none"
                     />
                 </div>
 
@@ -159,7 +159,7 @@ export default function AgendamentoForm() {
                     </Link>
                     <button
                         type="submit"
-                        className="px-10 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-200 transition-all active:scale-95"
+                        className="px-10 py-3 bg-primary hover:bg-secondary text-white font-bold rounded-xl shadow-lg shadow-primary/30 transition-all active:scale-95"
                     >
                         AGENDAR CONSULTA
                     </button>

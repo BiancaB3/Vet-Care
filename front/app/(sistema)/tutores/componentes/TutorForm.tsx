@@ -225,7 +225,7 @@ export default function TutorForm({ tutorExistente }: TutorFormProps) {
             value={tutor.nome}
             onChange={(e) => handleChange('nome', e.target.value)}
             placeholder="Nome completo do tutor"
-            className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 transition-all outline-none"
+            className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-primary transition-all outline-none"
           />
         </div>
 
@@ -237,7 +237,7 @@ export default function TutorForm({ tutorExistente }: TutorFormProps) {
             value={tutor.email}
             onChange={(e) => handleChange('email', e.target.value)}
             placeholder="seu@email.com"
-            className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 transition-all outline-none"
+            className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-primary transition-all outline-none"
           />
         </div>
 
@@ -249,7 +249,7 @@ export default function TutorForm({ tutorExistente }: TutorFormProps) {
             value={tutor.telefone}
             onChange={(e) => handleChange('telefone', e.target.value)}
             placeholder="(XX)XXXXX-XXXX"
-            className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 transition-all outline-none"
+            className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-primary transition-all outline-none"
           />
         </div>
 
@@ -261,7 +261,7 @@ export default function TutorForm({ tutorExistente }: TutorFormProps) {
             value={tutor.cpf}
             onChange={(e) => handleChange('cpf', e.target.value)}
             placeholder="000.000.000-00"
-            className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 transition-all outline-none"
+            className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-primary transition-all outline-none"
           />
         </div>
 
@@ -274,7 +274,7 @@ export default function TutorForm({ tutorExistente }: TutorFormProps) {
             onChange={(e) => handleChange('cep', e.target.value)}
             onBlur={handleCepBlur}
             placeholder="00000-000"
-            className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 transition-all outline-none"
+            className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-primary transition-all outline-none"
           />
           {isCepLoading && <p className="text-xs text-slate-500">Buscando endereco pelo CEP...</p>}
         </div>
@@ -287,7 +287,7 @@ export default function TutorForm({ tutorExistente }: TutorFormProps) {
             value={tutor.endereco}
             onChange={(e) => handleChange('endereco', e.target.value)}
             placeholder="Rua - Bairro - Cidade/UF"
-            className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 transition-all outline-none"
+            className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-primary transition-all outline-none"
           />
         </div>
 
@@ -300,7 +300,7 @@ export default function TutorForm({ tutorExistente }: TutorFormProps) {
           </Link>
           <button
             type="submit"
-            className="px-10 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-200 transition-all active:scale-95"
+            className="px-10 py-3 bg-primary hover:bg-secondary text-white font-bold rounded-xl shadow-lg shadow-primary/30 transition-all active:scale-95"
           >
             SALVAR
           </button>

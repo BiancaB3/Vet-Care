@@ -64,7 +64,7 @@ export default function LoginPage() {
                   type="email"
                   required
                   placeholder="seu@email.com"
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder:text-gray-400"
+                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all placeholder:text-gray-400"
                 />
               </div>
 
@@ -75,13 +75,13 @@ export default function LoginPage() {
                   type="password"
                   required
                   placeholder="••••••••"
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
                 />
               </div>
 
               <button
                 type="submit"
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition-colors shadow-lg shadow-blue-200 active:scale-[0.98]"
+                className="w-full bg-primary hover:bg-secondary text-white font-semibold py-3 rounded-lg transition-colors shadow-lg shadow-primary/30 active:scale-[0.98]"
               >
                 Acessar
               </button>
@@ -97,7 +97,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setScreen('forgot')}
-                  className="text-blue-600 hover:text-blue-700 font-bold"
+                  className="text-primary hover:text-secondary font-bold"
                 >
                   Esqueci minha senha
                 </button>
@@ -116,7 +116,7 @@ export default function LoginPage() {
                 type="email"
                 required
                 placeholder="seu@email.com"
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
               />
             </div>
             <p className="text-sm text-slate-600 text-center">
@@ -132,7 +132,7 @@ export default function LoginPage() {
               </button>
               <button
                 type="submit"
-                className="flex-1 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition-all shadow-lg"
+                className="flex-1 px-4 py-3 bg-primary hover:bg-secondary text-white font-bold rounded-lg transition-all shadow-lg"
               >
                 Enviar
               </button>

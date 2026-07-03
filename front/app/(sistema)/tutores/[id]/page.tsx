@@ -36,20 +36,20 @@ export default function DetalheTutorPage() {
         <div className="flex flex-col gap-3 mb-8">
           <Link
             href="/tutores"
-            className="group flex items-center text-sm font-medium text-slate-500 hover:text-blue-600 transition-colors"
+            className="group flex items-center text-sm font-medium text-slate-500 hover:text-primary transition-colors"
           >
             <span className="mr-2 transition-transform group-hover:-translate-x-1">←</span>
             Voltar para listagem
           </Link>
 
           <div className="flex items-center justify-between">
-            <div className="space-y-1 border-l-4 border-blue-500 pl-4">
+            <div className="space-y-1 border-l-4 border-primary pl-4">
               <h1 className="text-3xl font-bold text-slate-900 tracking-tight">{tutor.nome}</h1>
               <p className="text-sm text-slate-500">Tutor #{tutor.id}</p>
             </div>
             <Link
               href={`/tutores/${tutor.id}/editar`}
-              className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors shadow-sm"
+              className="inline-flex items-center gap-2 bg-primary hover:bg-secondary text-white px-4 py-2 rounded-lg font-medium transition-colors shadow-sm"
             >
               Editar
             </Link>

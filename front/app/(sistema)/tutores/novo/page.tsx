@@ -8,7 +8,7 @@ export default function NovoTutorPage() {
         <div className="flex flex-col gap-3 mb-8">
           <Link
             href="/tutores"
-            className="group flex items-center text-sm font-medium text-slate-500 hover:text-blue-600 transition-colors"
+            className="group flex items-center text-sm font-medium text-slate-500 hover:text-primary transition-colors"
           >
             <span className="mr-2 transition-transform group-hover:-translate-x-1">←</span>
             Voltar para listagem

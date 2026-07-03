@@ -160,7 +160,7 @@ export default function PetForm({ petExistente }: PetFormProps) {
             required
             value={form.tutorId}
             onChange={(e) => handleChange('tutorId', e.target.value)}
-            className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 transition-all outline-none"
+            className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-primary transition-all outline-none"
           >
             <option value="">Selecione o tutor</option>
             {tutores.map((tutor) => (
@@ -179,7 +179,7 @@ export default function PetForm({ petExistente }: PetFormProps) {
             value={form.nome}
             onChange={(e) => handleChange('nome', e.target.value)}
             placeholder="Nome do Pet"
-            className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 transition-all outline-none"
+            className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-primary transition-all outline-none"
           />
         </div>
 
@@ -189,7 +189,7 @@ export default function PetForm({ petExistente }: PetFormProps) {
             required
             value={form.especie}
             onChange={(e) => handleChange('especie', e.target.value)}
-            className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 transition-all outline-none"
+            className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-primary transition-all outline-none"
           >
             <option value="">Selecione espécie</option>
             <option value="Cao">Cão</option>
@@ -208,7 +208,7 @@ export default function PetForm({ petExistente }: PetFormProps) {
             value={form.raca}
             onChange={(e) => handleChange('raca', e.target.value)}
             placeholder="Raça"
-            className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 transition-all outline-none"
+            className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-primary transition-all outline-none"
           />
         </div>
 
@@ -220,7 +220,7 @@ export default function PetForm({ petExistente }: PetFormProps) {
             value={form.idade}
             onChange={(e) => handleChange('idade', e.target.value)}
             placeholder="Idade"
-            className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 transition-all outline-none"
+            className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-primary transition-all outline-none"
           />
         </div>
 
@@ -233,7 +233,7 @@ export default function PetForm({ petExistente }: PetFormProps) {
             value={form.peso}
             onChange={(e) => handleChange('peso', e.target.value)}
             placeholder="Peso em kg"
-            className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 transition-all outline-none"
+            className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-primary transition-all outline-none"
           />
         </div>
 
@@ -243,7 +243,7 @@ export default function PetForm({ petExistente }: PetFormProps) {
             required
             value={form.sexo}
             onChange={(e) => handleChange('sexo', e.target.value)}
-            className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 transition-all outline-none"
+            className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-primary transition-all outline-none"
           >
             <option value="">Selecione o sexo</option>
             <option value="Macho">Macho</option>
@@ -259,7 +259,7 @@ export default function PetForm({ petExistente }: PetFormProps) {
             value={form.cor}
             onChange={(e) => handleChange('cor', e.target.value)}
             placeholder="Cor"
-            className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 transition-all outline-none"
+            className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-primary transition-all outline-none"
           />
         </div>
 
@@ -272,7 +272,7 @@ export default function PetForm({ petExistente }: PetFormProps) {
           </Link>
           <button
             type="submit"
-            className="px-10 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-200 transition-all active:scale-95"
+            className="px-10 py-3 bg-primary hover:bg-secondary text-white font-bold rounded-xl shadow-lg shadow-primary/30 transition-all active:scale-95"
           >
             {petExistente ? 'SALVAR ALTERAÇÕES' : 'CADASTRAR PET'}
           </button>

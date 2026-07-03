@@ -46,7 +46,7 @@ function statusBadgeClasses(status: EnumStatusAgendamento): string {
     case 'CANCELADO':
       return 'bg-red-100 text-red-800';
     case 'REALIZADO':
-      return 'bg-blue-100 text-blue-800';
+      return 'bg-primary/20 text-secondary';
     case 'AGENDADO':
     default:
       return 'bg-yellow-100 text-yellow-800';

@@ -65,6 +65,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ApiErrorResponse> handleDataIntegrity(DataIntegrityViolationException ex, HttpServletRequest request) {
+        log.error("DataIntegrityViolationException em {} {}", request.getMethod(), request.getRequestURI(), ex);
+
         String mensagem = ex.getMostSpecificCause() != null && ex.getMostSpecificCause().getMessage() != null
                 ? ex.getMostSpecificCause().getMessage().toLowerCase()
                 : "";

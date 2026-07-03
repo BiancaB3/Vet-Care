@@ -75,7 +75,7 @@ export default function Agendamentos() {
                 </h1>
                 <Link
                     href="/agendamentos/novo"
-                    className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors shadow-sm"
+                    className="inline-flex items-center gap-2 bg-primary hover:bg-secondary text-white px-4 py-2 rounded-lg font-medium transition-colors shadow-sm"
                 >
                     <span className="text-xl">+</span> Novo Agendamento
                 </Link>
