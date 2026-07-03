@@ -9,7 +9,7 @@ import { listarPets } from '@/app/services/petService';
 import type { ProntuarioResponse } from '@/app/types/prontuario';
 import type { PetResponse } from '@/app/types/pet';
 import { pushNotification } from '@/app/redux/slices/notificationsSlice';
-import { getDraft, saveDraft, clearDraft } from '@/app/lib/formDraft';
+import { getDraft, saveDraft, clearDraft } from '@/app/context/formDraft';
 
 export type ProntuarioFormProps = {
   prontuarioExistente?: ProntuarioResponse;
