@@ -1,12 +1,12 @@
 import { configureStore } from "@reduxjs/toolkit";
 
 import authReducer from "./slices/authSlice";
-import carrinhoReducer from "./slices/carrinhoSlice";
+import notificationsReducer from "./slices/notificationsSlice";
 
 export const store = configureStore({
   reducer: {
     auth: authReducer,
-    carrinho: carrinhoReducer,
+    notifications: notificationsReducer,
   },
 });
 

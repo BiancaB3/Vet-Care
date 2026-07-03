@@ -1,7 +1,4 @@
 import type { Metadata } from 'next';
-import { AuthProvider } from './types/AuthContext';
-import { DraftProvider } from './types/DraftContext';
-import { VetProvider } from './types/VetContext';
 import StoreProvider from './redux/StoreProvider';
 import './globals.css';
 
@@ -17,14 +14,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR">
-      <body className="antialiased bg-gradient-to-br from-slate-50 via-blue-50 to-emerald-50">
-        <StoreProvider>
-          <AuthProvider>
-            <VetProvider>
-              <DraftProvider>{children}</DraftProvider>
-            </VetProvider>
-          </AuthProvider>
-        </StoreProvider>
+      <body className="antialiased bg-gradient-to-br from-slate-50 via-primary/10 to-emerald-50">
+        <StoreProvider>{children}</StoreProvider>
       </body>
     </html>
   );

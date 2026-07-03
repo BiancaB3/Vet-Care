@@ -6,6 +6,7 @@ import VetCare.Back.application.services.ProntuarioService;
 import VetCare.Back.domain.entities.Veterinario;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -40,7 +41,7 @@ public class ProntuarioController {
 
     @PostMapping
     @Operation(summary = "Cadastrar prontuario", description = "Cadastra um novo prontuario no sistema.")
-    public ResponseEntity<ProntuarioResponse> salvar(@RequestBody ProntuarioRequest prontuarioRequest, Authentication auth) {
+    public ResponseEntity<ProntuarioResponse> salvar(@Valid @RequestBody ProntuarioRequest prontuarioRequest, Authentication auth) {
         Veterinario veterinario = (Veterinario) auth.getPrincipal();
 
         return ResponseEntity.status(HttpStatus.CREATED).body(prontuarioService.salvar(prontuarioRequest, veterinario));
@@ -48,11 +49,20 @@ public class ProntuarioController {
 
     @PutMapping("/{id}")
     @Operation(summary = "Atualizar prontuario", description = "Atualiza os dados de um prontuario existente.")
-    public ResponseEntity<?> atualizar(@PathVariable Long id, @RequestBody ProntuarioRequest prontuarioRequest, Authentication auth) {
+    public ResponseEntity<?> atualizar(@PathVariable Long id, @Valid @RequestBody ProntuarioRequest prontuarioRequest, Authentication auth) {
         Veterinario veterinario = (Veterinario) auth.getPrincipal();
 
         var alterarProntuarioResult = prontuarioService.atualizar(id, prontuarioRequest, veterinario);
         return alterarProntuarioResult ? ResponseEntity.ok("Atualizado com sucesso!") : ResponseEntity.notFound().build();
+    }
+
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Excluir prontuario", description = "Remove um prontuario do sistema.")
+    public ResponseEntity<?> excluir(@PathVariable Long id, Authentication auth) {
+        Veterinario veterinario = (Veterinario) auth.getPrincipal();
+
+        boolean excluido = prontuarioService.excluir(id, veterinario);
+        return excluido ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
     }
 }
 

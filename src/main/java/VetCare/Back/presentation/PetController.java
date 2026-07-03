@@ -6,6 +6,7 @@ import VetCare.Back.application.services.PetService;
 import VetCare.Back.domain.entities.Veterinario;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -40,7 +41,7 @@ public class PetController {
 
     @PostMapping
     @Operation(summary = "Cadastrar pet", description = "Cadastra um novo pet no sistema.")
-    public ResponseEntity<PetResponse> salvar(@RequestBody PetRequest petRequest, Authentication auth) {
+    public ResponseEntity<PetResponse> salvar(@Valid @RequestBody PetRequest petRequest, Authentication auth) {
         Veterinario veterinario = (Veterinario) auth.getPrincipal();
 
         return ResponseEntity.status(HttpStatus.CREATED).body(petService.salvar(petRequest, veterinario));
@@ -48,7 +49,7 @@ public class PetController {
 
     @PutMapping("/{id}")
     @Operation(summary = "Atualizar pet", description = "Atualiza os dados de um pet existente.")
-    public ResponseEntity<?> atualizar(@PathVariable Long id, @RequestBody PetRequest petRequest, Authentication auth) {
+    public ResponseEntity<?> atualizar(@PathVariable Long id, @Valid @RequestBody PetRequest petRequest, Authentication auth) {
         Veterinario veterinario = (Veterinario) auth.getPrincipal();
 
         var alterarPetResult = petService.atualizar(id, petRequest, veterinario);

@@ -90,6 +90,16 @@ public class ProntuarioService {
         return false;
     }
 
+    public boolean excluir(Long id, Veterinario veterinario) {
+        var prontuario = prontuarioRepository.findByIdAndVeterinarioId(id, veterinario.getId()).orElse(null);
+        if (prontuario == null) {
+            return false;
+        }
+
+        prontuarioRepository.delete(prontuario);
+        return true;
+    }
+
     private Pet buscarPetDoVeterinario(ProntuarioRequest prontuarioRequest, Veterinario veterinario) {
         if (prontuarioRequest.pet() == null || prontuarioRequest.pet().id() == null) {
             throw new IllegalArgumentException("Informe pet.id para salvar o prontuario.");

@@ -8,14 +8,6 @@ export interface LoginRequest {
 }
 
 export interface AuthState {
-  usuario: {
-    id: number | null;
-    nome: string;
-    email: string;
-    status: string;
-    senha: string;
-    crmv?: string | null;
-    telefone?: string | null;
-  } | null;
+  usuario: import('./veterinario').VeterinarioResponse | null;
   token: string;
 }

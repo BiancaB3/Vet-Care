@@ -6,6 +6,7 @@ import VetCare.Back.application.services.AgendamentoService;
 import VetCare.Back.domain.entities.Veterinario;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -40,7 +41,7 @@ public class AgendamentoController {
 
     @PostMapping
     @Operation(summary = "Cadastrar agendamento", description = "Cadastra um novo agendamento no sistema.")
-    public ResponseEntity<AgendamentoResponse> salvar(@RequestBody AgendamentoRequest agendamentoRequest, Authentication auth) {
+    public ResponseEntity<AgendamentoResponse> salvar(@Valid @RequestBody AgendamentoRequest agendamentoRequest, Authentication auth) {
         Veterinario veterinario = (Veterinario) auth.getPrincipal();
 
         return ResponseEntity.status(HttpStatus.CREATED).body(agendamentoService.salvar(agendamentoRequest, veterinario));
@@ -48,11 +49,20 @@ public class AgendamentoController {
 
     @PutMapping("/{id}")
     @Operation(summary = "Atualizar agendamento", description = "Atualiza os dados de um agendamento existente.")
-    public ResponseEntity<?> atualizar(@PathVariable Long id, @RequestBody AgendamentoRequest agendamentoRequest, Authentication auth) {
+    public ResponseEntity<?> atualizar(@PathVariable Long id, @Valid @RequestBody AgendamentoRequest agendamentoRequest, Authentication auth) {
         Veterinario veterinario = (Veterinario) auth.getPrincipal();
 
         var alterarAgendamentoResult = agendamentoService.atualizar(id, agendamentoRequest, veterinario);
         return alterarAgendamentoResult ? ResponseEntity.ok("Atualizado com sucesso!") : ResponseEntity.notFound().build();
+    }
+
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Excluir agendamento", description = "Remove um agendamento do sistema.")
+    public ResponseEntity<?> excluir(@PathVariable Long id, Authentication auth) {
+        Veterinario veterinario = (Veterinario) auth.getPrincipal();
+
+        boolean excluido = agendamentoService.excluir(id, veterinario);
+        return excluido ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
     }
 }
 

@@ -1,5 +1,5 @@
 import { AuthState } from "@/app/types/auth";
-import { Usuario } from "@/app/types/usuarios";
+import { VeterinarioResponse } from "@/app/types/veterinario";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit"
 import Cookies from "js-cookie";
 
@@ -14,10 +14,10 @@ function shouldUseSecureCookie(): boolean {
   return window.location.protocol === 'https:';
 }
 
-function parseUsuarioFromCookie(raw: string | undefined): Usuario | null {
+function parseUsuarioFromCookie(raw: string | undefined): VeterinarioResponse | null {
   if (!raw) return null;
   try {
-    return JSON.parse(raw) as Usuario;
+    return JSON.parse(raw) as VeterinarioResponse;
   } catch {
     Cookies.remove('usuario');
     return null;
@@ -41,7 +41,7 @@ const authSlice = createSlice({
         sameSite: 'lax',
       })
     },
-    setUsuario: (state, action: PayloadAction<{ usuario: Usuario }>) => {
+    setUsuario: (state, action: PayloadAction<{ usuario: VeterinarioResponse }>) => {
       state.usuario = action.payload.usuario;
       Cookies.set('usuario', JSON.stringify(action.payload.usuario), { expires: 7 });
     },

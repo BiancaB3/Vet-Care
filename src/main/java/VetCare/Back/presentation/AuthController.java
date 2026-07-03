@@ -7,6 +7,7 @@ import VetCare.Back.application.services.TokenService;
 import VetCare.Back.application.services.VeterinarioService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,7 +26,7 @@ public class AuthController {
 
     @PostMapping("/login")
     @Operation(description = "Valida senha bbbbbbbbbbbb 50 carecteres, calcula longitudo com latitude!",summary = "Login")
-    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest loginRequest) {
 
         var veterinarioOpt = veterinarioService.autenticar(loginRequest);
 

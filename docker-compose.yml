@@ -7,7 +7,7 @@ services:
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=123456
-      - POSTGRES_DB=aulafull
+      - POSTGRES_DB=vetcare_back
     volumes:
       - postgres-data-local:/var/lib/postgresql/data
 
@@ -17,7 +17,7 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db:5432/aulafull
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-db:5432/vetcare_back
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=123456
     depends_on:

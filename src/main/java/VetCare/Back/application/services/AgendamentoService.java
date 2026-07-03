@@ -8,8 +8,10 @@ import VetCare.Back.domain.entities.Veterinario;
 import VetCare.Back.domain.enuns.EnumStatusAgendamento;
 import VetCare.Back.domain.repository.AgendamentoRepository;
 import VetCare.Back.domain.repository.PetRepository;
+import VetCare.Back.domain.repository.ProntuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Locale;
@@ -23,6 +25,9 @@ public class AgendamentoService {
 
     @Autowired
     private PetRepository petRepository;
+
+    @Autowired
+    private ProntuarioRepository prontuarioRepository;
 
     public List<Agendamento> listarTodos(Long veterinarioId) {
         return agendamentoRepository.findByVeterinarioId(veterinarioId);
@@ -80,6 +85,21 @@ public class AgendamentoService {
         }
 
         return false;
+    }
+
+    @Transactional
+    public boolean excluir(Long id, Veterinario veterinario) {
+        var agendamento = agendamentoRepository.findByIdAndVeterinarioId(id, veterinario.getId()).orElse(null);
+        if (agendamento == null) {
+            return false;
+        }
+
+        var prontuariosVinculados = prontuarioRepository.findByAgendamentoId(id);
+        prontuariosVinculados.forEach(prontuario -> prontuario.setAgendamento(null));
+        prontuarioRepository.saveAll(prontuariosVinculados);
+
+        agendamentoRepository.delete(agendamento);
+        return true;
     }
 
     private Pet buscarPetDoVeterinario(AgendamentoRequest agendamentoRequest, Veterinario veterinario) {

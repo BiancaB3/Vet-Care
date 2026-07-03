@@ -57,6 +57,15 @@ public class TutorController {
         return alterarTutorResult ? ResponseEntity.ok("Atualizado com sucesso!") : ResponseEntity.notFound().build();
     }
 
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Excluir tutor", description = "Remove um tutor e seus pets, agendamentos e prontuarios vinculados.")
+    public ResponseEntity<?> excluir(@PathVariable Long id, @AuthenticationPrincipal Veterinario veterinario) {
+        Veterinario vet = requireVeterinario(veterinario);
+
+        boolean excluido = tutorService.excluir(id, vet);
+        return excluido ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
+    }
+
     private Veterinario requireVeterinario(Veterinario veterinario) {
         if (veterinario == null || veterinario.getId() == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Veterinario nao autenticado.");

@@ -1,6 +1,5 @@
 package VetCare.Back.domain.entities;
 
-import VetCare.Back.domain.enuns.EnumStatusTutor;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -27,7 +26,7 @@ public class Tutor {
     @Column(unique = true)
     private String email;
     private String endereco;
-    private EnumStatusTutor status = EnumStatusTutor.ATIVO;
+    private String status = "ATIVO";
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "veterinario_id")
@@ -93,11 +92,11 @@ public class Tutor {
         this.endereco = endereco;
     }
 
-    public EnumStatusTutor getStatus() {
+    public String getStatus() {
         return status;
     }
 
-    public void setStatus(EnumStatusTutor status) {
+    public void setStatus(String status) {
         this.status = status;
     }
 
