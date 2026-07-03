@@ -24,3 +24,7 @@ export async function atualizarAgendamento(
 ): Promise<void> {
   await api.put(`/agendamentos/${id}`, payload);
 }
+
+export async function excluirAgendamento(id: number): Promise<void> {
+  await api.delete(`/agendamentos/${id}`);
+}

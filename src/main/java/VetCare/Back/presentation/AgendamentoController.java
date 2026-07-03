@@ -55,5 +55,14 @@ public class AgendamentoController {
         var alterarAgendamentoResult = agendamentoService.atualizar(id, agendamentoRequest, veterinario);
         return alterarAgendamentoResult ? ResponseEntity.ok("Atualizado com sucesso!") : ResponseEntity.notFound().build();
     }
+
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Excluir agendamento", description = "Remove um agendamento do sistema.")
+    public ResponseEntity<?> excluir(@PathVariable Long id, Authentication auth) {
+        Veterinario veterinario = (Veterinario) auth.getPrincipal();
+
+        boolean excluido = agendamentoService.excluir(id, veterinario);
+        return excluido ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
+    }
 }
 

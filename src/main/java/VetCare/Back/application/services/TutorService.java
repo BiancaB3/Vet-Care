@@ -68,6 +68,17 @@ public class TutorService {
         return false;
     }
 
+    @Transactional
+    public boolean excluir(Long id, Veterinario veterinario) {
+        var tutor = tutorRepository.findByIdAndVeterinarioId(id, veterinario.getId()).orElse(null);
+        if (tutor == null) {
+            return false;
+        }
+
+        tutorRepository.delete(tutor);
+        return true;
+    }
+
     private void validarTutor(TutorRequest tutorRequest) {
         if (tutorRequest == null) {
             throw new IllegalArgumentException("Dados do tutor nao informados.");

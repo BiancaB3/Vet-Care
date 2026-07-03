@@ -1,5 +1,5 @@
 'use client'
-import { atualizarAgendamento, listarAgendamentos } from "@/app/services/agendamentoService";
+import { atualizarAgendamento, excluirAgendamento, listarAgendamentos } from "@/app/services/agendamentoService";
 import { listarPets } from "@/app/services/petService";
 import { listarTutores } from "@/app/services/tutorService";
 import { AgendamentoResponse } from "@/app/types/agendamento";
@@ -67,6 +67,22 @@ export default function Agendamentos() {
         }
     }
 
+    const handleExcluir = async (agendamento: AgendamentoResponse) => {
+        if (!window.confirm('Deseja realmente remover esta consulta?')) {
+            return;
+        }
+
+        try {
+            await excluirAgendamento(agendamento.id);
+            setAgendamentos((prev) => prev.filter((a) => a.id !== agendamento.id));
+            dispatch(pushNotification({ message: 'Consulta removida', type: 'cancelamento' }));
+            setAppointmentDetailsModal(null);
+        } catch (error) {
+            alert("Erro ao remover consulta!");
+            console.error(error);
+        }
+    }
+
     return (
         <div className="p-6 max-w-6xl mx-auto">
             <div className="flex items-center justify-between mb-8">
@@ -95,6 +111,7 @@ export default function Agendamentos() {
                 onOpenAppointmentModal={() => router.push('/agendamentos/novo')}
                 onSetAppointmentDetailsModal={setAppointmentDetailsModal}
                 onConfirmar={handleConfirmar}
+                onExcluir={handleExcluir}
             />
         </div>
     )

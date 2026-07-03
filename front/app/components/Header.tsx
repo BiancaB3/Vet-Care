@@ -19,14 +19,15 @@ export default function Header() {
             <img src="/LOGOVETCARE.png" alt="VetCare" width={36} height={36} className="h-9 w-9 object-cover rounded-full mix-blend-multiply" />
             <span className="text-lg font-bold text-white">VetCare</span>
           </Link>
-          <nav className="hidden sm:flex items-center gap-1">
+          {/* <nav className="hidden sm:flex items-center gap-1">
             <Link href="/home" className="px-3 py-2 text-sm text-white hover:bg-secondary rounded">Home</Link>
             <Link href="/agendamentos" className="px-3 py-2 text-sm text-white hover:bg-secondary rounded">Agendamentos</Link>
             <Link href="/tutores" className="px-3 py-2 text-sm text-white hover:bg-secondary rounded">Tutores</Link>
             <Link href="/pets" className="px-3 py-2 text-sm text-white hover:bg-secondary rounded">Pets</Link>
             <Link href="/prontuarios" className="px-3 py-2 text-sm text-white hover:bg-secondary rounded">Prontuários</Link>
             <Link href="/veterinarios" className="px-3 py-2 text-sm text-white hover:bg-secondary rounded">Veterinários</Link>
-          </nav>
+          </nav> */}
+       
         </div>
         <div className="flex items-center gap-3">
           <NotificationBell />

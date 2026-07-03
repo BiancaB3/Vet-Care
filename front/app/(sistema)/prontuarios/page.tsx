@@ -2,11 +2,13 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { useDispatch } from 'react-redux';
 import { Cat, Dog, Feather, Mouse, Search, Turtle } from 'lucide-react';
-import { listarProntuarios } from '@/app/services/prontuarioService';
+import { listarProntuarios, excluirProntuario } from '@/app/services/prontuarioService';
 import { listarPets } from '@/app/services/petService';
 import type { ProntuarioResponse } from '@/app/types/prontuario';
 import type { PetResponse } from '@/app/types/pet';
+import { pushNotification } from '@/app/redux/slices/notificationsSlice';
 
 function getSpeciesIcon(species: string) {
   const normalized = species.toLowerCase();
@@ -29,6 +31,8 @@ function getSpeciesIcon(species: string) {
 }
 
 export default function Prontuarios() {
+  const dispatch = useDispatch();
+
   const [prontuarios, setProntuarios] = useState<ProntuarioResponse[]>([]);
   const [pets, setPets] = useState<PetResponse[]>([]);
   const [busca, setBusca] = useState('');
@@ -44,6 +48,26 @@ export default function Prontuarios() {
       setPets(dadosPets);
     } catch (error) {
       alert('Erro ao carregar dados dos prontuários!');
+      console.error(error);
+    }
+  };
+
+  const handleExcluir = async (prontuario: ProntuarioResponse) => {
+    if (!window.confirm('Deseja realmente remover este prontuário?')) {
+      return;
+    }
+
+    try {
+      await excluirProntuario(prontuario.id);
+      setProntuarios((prev) => prev.filter((item) => item.id !== prontuario.id));
+      dispatch(
+        pushNotification({
+          message: 'Prontuário removido',
+          type: 'cancelamento',
+        }),
+      );
+    } catch (error) {
+      alert('Erro ao remover prontuário!');
       console.error(error);
     }
   };
@@ -126,6 +150,12 @@ export default function Prontuarios() {
                       >
                         Editar
                       </Link>
+                      <button
+                        onClick={() => handleExcluir(prontuario)}
+                        className="text-red-600 hover:text-red-800 font-medium transition-colors"
+                      >
+                        Remover
+                      </button>
                     </td>
                   </tr>
                 );

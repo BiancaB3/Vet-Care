@@ -24,3 +24,7 @@ export async function atualizarProntuario(
 ): Promise<void> {
   await api.put(`/prontuarios/${id}`, payload);
 }
+
+export async function excluirProntuario(id: number): Promise<void> {
+  await api.delete(`/prontuarios/${id}`);
+}

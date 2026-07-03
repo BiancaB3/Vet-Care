@@ -19,3 +19,7 @@ export async function criarTutor(payload: TutorRequest): Promise<TutorResponse> 
 export async function atualizarTutor(id: number, payload: TutorRequest): Promise<void> {
   await api.put(`/tutores/${id}`, payload);
 }
+
+export async function excluirTutor(id: number): Promise<void> {
+  await api.delete(`/tutores/${id}`);
+}

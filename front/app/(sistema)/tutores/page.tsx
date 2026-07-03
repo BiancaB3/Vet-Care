@@ -2,11 +2,15 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { useDispatch } from 'react-redux';
 import { Search, User, UserPlus, Users } from 'lucide-react';
-import { listarTutores } from '@/app/services/tutorService';
+import { listarTutores, excluirTutor } from '@/app/services/tutorService';
 import type { TutorResponse } from '@/app/types/tutor';
+import { pushNotification } from '@/app/redux/slices/notificationsSlice';
 
 export default function TutoresPage() {
+  const dispatch = useDispatch();
+
   const [tutores, setTutores] = useState<TutorResponse[]>([]);
   const [busca, setBusca] = useState('');
   const [carregando, setCarregando] = useState(true);
@@ -23,6 +27,30 @@ export default function TutoresPage() {
       alert('Erro ao carregar a lista de tutores!');
     } finally {
       setCarregando(false);
+    }
+  };
+
+  const handleExcluir = async (tutor: TutorResponse) => {
+    if (
+      !window.confirm(
+        `Deseja realmente remover o tutor "${tutor.nome}"? Isso também remove seus pets, agendamentos e prontuários vinculados.`,
+      )
+    ) {
+      return;
+    }
+
+    try {
+      await excluirTutor(tutor.id);
+      setTutores((prev) => prev.filter((item) => item.id !== tutor.id));
+      dispatch(
+        pushNotification({
+          message: `Tutor "${tutor.nome}" removido`,
+          type: 'cancelamento',
+        }),
+      );
+    } catch (error) {
+      alert('Erro ao remover tutor!');
+      console.error(error);
     }
   };
 
@@ -97,6 +125,12 @@ export default function TutoresPage() {
                     >
                       Editar
                     </Link>
+                    <button
+                      onClick={() => handleExcluir(tutor)}
+                      className="text-red-600 hover:text-red-800 font-medium transition-colors"
+                    >
+                      Remover
+                    </button>
                   </td>
                 </tr>
               ))}

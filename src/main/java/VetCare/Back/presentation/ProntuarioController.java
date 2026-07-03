@@ -55,5 +55,14 @@ public class ProntuarioController {
         var alterarProntuarioResult = prontuarioService.atualizar(id, prontuarioRequest, veterinario);
         return alterarProntuarioResult ? ResponseEntity.ok("Atualizado com sucesso!") : ResponseEntity.notFound().build();
     }
+
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Excluir prontuario", description = "Remove um prontuario do sistema.")
+    public ResponseEntity<?> excluir(@PathVariable Long id, Authentication auth) {
+        Veterinario veterinario = (Veterinario) auth.getPrincipal();
+
+        boolean excluido = prontuarioService.excluir(id, veterinario);
+        return excluido ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
+    }
 }
 

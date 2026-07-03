@@ -11,4 +11,6 @@ public interface ProntuarioRepository extends JpaRepository<Prontuario, Long> {
 	List<Prontuario> findByVeterinarioId(Long veterinarioId);
 
 	Optional<Prontuario> findByIdAndVeterinarioId(Long id, Long veterinarioId);
+
+	List<Prontuario> findByAgendamentoId(Long agendamentoId);
 }

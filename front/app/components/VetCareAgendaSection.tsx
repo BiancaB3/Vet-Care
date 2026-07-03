@@ -22,6 +22,7 @@ export type VetCareAgendaSectionProps = {
   onOpenAppointmentModal: () => void;
   onSetAppointmentDetailsModal: (value: number | null) => void;
   onConfirmar: (agendamento: AgendamentoResponse) => void;
+  onExcluir: (agendamento: AgendamentoResponse) => void;
 };
 
 function statusLabel(status: EnumStatusAgendamento): string {
@@ -183,6 +184,7 @@ export default function VetCareAgendaSection({
   onOpenAppointmentModal,
   onSetAppointmentDetailsModal,
   onConfirmar,
+  onExcluir,
 }: VetCareAgendaSectionProps) {
   const filteredAppointments = currentVetAppointments.filter((apt) => {
     const pet = currentVetPets.find((p) => p.id === apt.petId);
@@ -360,6 +362,12 @@ export default function VetCareAgendaSection({
                   className="w-full py-3.5 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl transition-all shadow-lg"
                 >
                   Enviar lembrete no WhatsApp
+                </button>
+                <button
+                  onClick={() => onExcluir(appointment)}
+                  className="w-full py-3.5 border-2 border-red-200 text-red-600 hover:bg-red-50 font-bold rounded-xl transition-all"
+                >
+                  Remover Consulta
                 </button>
               </div>
             </div>
