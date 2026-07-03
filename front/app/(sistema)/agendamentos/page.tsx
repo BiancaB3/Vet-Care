@@ -89,12 +89,7 @@ export default function Agendamentos() {
                 <h1 className="text-2xl font-bold text-slate-800 tracking-tight">
                     Agenda de Consultas
                 </h1>
-                <Link
-                    href="/agendamentos/novo"
-                    className="inline-flex items-center gap-2 bg-primary hover:bg-secondary text-white px-4 py-2 rounded-lg font-medium transition-colors shadow-sm"
-                >
-                    <span className="text-xl">+</span> Novo Agendamento
-                </Link>
+                
             </div>
 
             <VetCareAgendaSection
